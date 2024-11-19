@@ -22,10 +22,10 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     protected ?string $lockConnection = null;
 
     protected const RESERVED_CHARACTERS_MAP = [
-        "{"     => ".lcb.",
-        "}"     => ".rcb.",
-        "("     => ".lb.",
-        ")"     => ".rb.",
+        "("     => ".ob.",
+        ")"     => ".cb.",
+        "{"     => ".ocb.",
+        "}"     => ".ccb.",
         "/"     => ".fs.",
         "\\"    => ".bs.",
         "@"     => ".at.",
@@ -86,9 +86,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param array $keys
-     * @return array
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function many(array $keys)
@@ -98,24 +96,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param string $key
-     * @param mixed $value
-     * @param int $seconds
-     * @return bool
-     * @throws InvalidArgumentException
-     */
-    public function add($key, $value, $seconds)
-    {
-        return $this->put($this->cleanKey($key), $value, $seconds);
-    }
-
-    /**
-     *
-     * @param string $key
-     * @param mixed $value
-     * @param ?int $seconds
-     * @return bool
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function put($key, $value, $seconds)
@@ -129,10 +110,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param array $values
-     * @param int $seconds
-     * @return bool
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function putMany(array $values, $seconds)
