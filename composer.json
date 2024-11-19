@@ -7,6 +7,7 @@
         "cache",
         "valkey"
     ],
+    "version": "0.1.0",
     "license": "MIT",
     "require": {
         "php": "^8.0",
