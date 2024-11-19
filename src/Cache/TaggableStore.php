@@ -13,6 +13,7 @@ use Illuminate\Cache\TaggableStore as IlluminateTaggableStore;
 use Illuminate\Cache\PhpRedisLock;
 use Illuminate\Cache\RedisLock;
 use Closure;
+use Illuminate\Redis\Connections\PhpRedisConnection;
 
 class TaggableStore extends IlluminateTaggableStore implements LockProvider
 {
@@ -186,10 +187,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param string $key
-     * @param int $value
-     * @return int|bool
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function increment($key, $value = 1)
@@ -198,10 +196,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param string $key
-     * @param int $value
-     * @return int|bool
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function decrement($key, $value = 1)
@@ -210,10 +205,9 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return bool
+     * {@inheritDoc}
+     * 
+     * This is not infinite, it's around 100 days, for memory management reasons.
      * @throws InvalidArgumentException
      */
     public function forever($key, $value)
@@ -222,9 +216,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @param string $key
-     * @return bool
+     * {@inheritDoc}
      * @throws InvalidArgumentException
      */
     public function forget($key)
@@ -233,8 +225,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @return bool
+     * {@inheritDoc}
      */
     public function flush()
     {
@@ -242,8 +233,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
-     * @return string
+     * {@inheritDoc}
      */
     public function getPrefix()
     {
@@ -251,7 +241,7 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     * Sets the tags to be used
+     * Begin using a tagged repository
      *
      * @param array $tags
      * @return TaggedRepository
@@ -262,7 +252,6 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
      * @param string $connection
      * @return TaggableStore
      */
@@ -273,7 +262,6 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     }
 
     /**
-     *
      * @return Connection
      */
     public function lockConnection(): Connection
@@ -295,7 +283,6 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
 
         $lockConnection = $this->lockConnection();
 
-        /** @disregard P1009 */
         if ($lockConnection instanceof PhpRedisConnection) {
             return new PhpRedisLock($lockConnection, $lockName, $seconds, $owner);
         }
