@@ -1,0 +1,37 @@
+{
+    "name": "byerikas/valkey-symfony-cache",
+    "description": "Valkey Symfony Cache integration for Laravel",
+    "keywords": [
+        "laravel",
+        "symfony",
+        "cache",
+        "valkey"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^11",
+        "illuminate/cache": "^11",
+        "symfony/cache": "^7.1",
+        "illuminate/redis": "^11.32"
+    },
+    "autoload": {
+        "psr-4": {
+            "ByErikas\\ValkeySymfonyCache\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "byErikas",
+            "email": "erikasbystautas1@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ByErikas\\ValkeySymfonyCache\\ServiceProvider"
+            ]
+        }
+    }
+}
