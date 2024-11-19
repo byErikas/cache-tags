@@ -19,6 +19,18 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     use InteractsWithTime;
 
     protected ?string $lockConnection = null;
+
+    protected const RESERVED_CHARACTERS_MAP = [
+        "{"     => ".lcb.",
+        "}"     => ".rcb.",
+        "("     => ".lb.",
+        ")"     => ".rb.",
+        "/"     => ".fs.",
+        "\\"    => ".bs.",
+        "@"     => ".at.",
+        ":"     => "."
+    ];
+
     /**
      * Create a new Redis store.
      *
@@ -34,12 +46,11 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     ) {}
 
     /**
-     * PSR-6 doesn't allow certain characters as cache keys, most notably `:` which laravel uses in their code. Maybe
-     * each forbidden character should be replaced with a unique pattern but this works for now.
+     * PSR-6 doesn't allow '{}()/\@:' as cache keys, replace with unique map.
      */
     public function cleanKey(string $key): string
     {
-        return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), '.', $key);
+        return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), TaggableStore::RESERVED_CHARACTERS_MAP, $key);
     }
 
     public function setConnection(?string $connection): void
