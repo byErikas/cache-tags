@@ -9,3 +9,25 @@ of this repository: [eldair/laravel_symfony_cache](https://github.com/eldair/lar
 
 ## TODO:
 - This implementation restores the ability to flush a key using any of its tags. This can leave trash in your Redis/Valkey store, when a key with multiple tags gets flushed, as the unflushed tag points to nowhere. Ideally, this should be taken care of.
+
+# Installation:
+In your `composer.json`, `repositories` key add this:
+```json
+{
+    "type": "vcs",
+    "url": "https://github.com/byerikas/valkey-taggable-cache.git"
+}
+```
+it should look like this:
+```json
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/byerikas/valkey-taggable-cache.git"
+    }
+]
+```
+save your changes, and use this command to install the `main` branch version:
+```
+composer require byerikas/valkey-taggable-cache:dev-main
+```
