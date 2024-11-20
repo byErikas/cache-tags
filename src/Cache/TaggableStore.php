@@ -1,6 +1,6 @@
 <?php
 
-namespace ByErikas\ValkeySymfonyCache\Cache;
+namespace ByErikas\ValkeyTaggableCache\Cache;
 
 use Symfony\Component\Cache\Exception\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
@@ -22,8 +22,8 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     protected ?string $lockConnection = null;
 
     protected const RESERVED_CHARACTERS_MAP = [
-        ":"     => ".",
-        "@"     => "\0",
+        ":"     => "\0",
+        "@"     => "\1",
         "("     => "\2",
         ")"     => "\3",
         "{"     => "\4",

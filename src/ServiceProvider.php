@@ -1,8 +1,8 @@
 <?php
 
-namespace ByErikas\ValkeySymfonyCache;
+namespace ByErikas\ValkeyTaggableCache;
 
-use ByErikas\ValkeySymfonyCache\Cache\TaggableStore;
+use ByErikas\ValkeyTaggableCache\Cache\TaggableStore;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Cache;

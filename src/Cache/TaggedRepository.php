@@ -1,6 +1,6 @@
 <?php
 
-namespace ByErikas\ValkeySymfonyCache\Cache;
+namespace ByErikas\ValkeyTaggableCache\Cache;
 
 use Symfony\Contracts\Cache\ItemInterface;
 use Illuminate\Cache\Events\KeyWritten;

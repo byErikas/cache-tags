@@ -1,13 +1,14 @@
 {
-    "name": "byerikas/valkey-symfony-cache",
-    "description": "Valkey Symfony Cache integration for Laravel",
+    "name": "byerikas/valkey-taggable-cache",
+    "description": "Valkey/Redis Taggable Cache integration for Laravel, based on Symfony cache.",
     "keywords": [
         "laravel",
-        "symfony",
         "cache",
-        "valkey"
+        "valkey",
+        "redis",
+        "symfony"
     ],
-    "version": "0.1.0",
+    "version": "1.0.0",
     "license": "MIT",
     "require": {
         "php": "^8.0",
@@ -18,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "ByErikas\\ValkeySymfonyCache\\": "src/"
+            "ByErikas\\ValkeyTaggableCache\\": "src/"
         }
     },
     "authors": [
@@ -31,7 +32,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ByErikas\\ValkeySymfonyCache\\ServiceProvider"
+                "ByErikas\\ValkeyTaggableCache\\ServiceProvider"
             ]
         }
     }
