@@ -3,7 +3,7 @@ This is a basic package that implements Symfony Cache adapter for Laravel 10/11.
 of this repository: [eldair/laravel_symfony_cache](https://github.com/eldair/laravel_symfony_cache/tree/main) and as such, a lot of credit goes to [eldair](https://github.com/eldair).
 
 ## My additions include:
-- Mapped required dependencies for PHP/Laravel using Composer
+- Mapped required dependencies for PHP/Laravel using Composer, added package discovery
 - Added mapping for characters that are reserved for unique patterns
 - Implemented `Cache::forever()` logic
 
