@@ -22,14 +22,14 @@ class TaggableStore extends IlluminateTaggableStore implements LockProvider
     protected ?string $lockConnection = null;
 
     protected const RESERVED_CHARACTERS_MAP = [
-        ":"     => "\0",
-        "@"     => "\1",
-        "("     => "\2",
-        ")"     => "\3",
-        "{"     => "\4",
-        "}"     => "\5",
-        "/"     => "\6",
-        "\\"    => "\7"
+        ":"     => ".",
+        "@"     => ".at.",
+        "("     => ".ob.",
+        ")"     => ".cb.",
+        "{"     => ".ocb.",
+        "}"     => ".ccb.",
+        "/"     => ".fs.",
+        "\\"    => ".b."
     ];
 
     /**
