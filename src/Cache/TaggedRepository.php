@@ -62,7 +62,7 @@ class TaggedRepository extends Repository
 
                 return $value;
             },
-            1,
+            \INF,
         );
 
         $resultItem = $client->getItem($key);
