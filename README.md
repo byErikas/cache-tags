@@ -16,6 +16,8 @@ $result = Cache::tags(["tag2", "tag1"])->get("key") //Will result in true
 $result = Cache::tags(["tag2"])->get("key") //Will result in true
 ```
 
+Using `Cache::forever()` will now store items for 100 days, not forever, to allow the values to be memory managed, instead of tags.
+
 ## TODO:
 - Add PECL testing
 - Add package to packagist

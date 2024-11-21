@@ -8,10 +8,13 @@ use Illuminate\Cache\Events\RetrievingKey;
 use Symfony\Contracts\Cache\ItemInterface;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Cache\RedisTaggedCache as BaseTaggedCache;
+use Illuminate\Cache\TaggedCache;
 
 class Cache extends BaseTaggedCache
 {
     use InteractsWithTime;
+
+    public const DEFAULT_CACHE_TTL = 8640000;
 
     protected const RESERVED_CHARACTERS_MAP = [
         ":"     => ".",
@@ -80,7 +83,7 @@ class Cache extends BaseTaggedCache
             }
         }
 
-        return parent::add($key, $value, $ttl);
+        return TaggedCache::add($key, $value, $ttl);
     }
 
     /**
@@ -106,7 +109,7 @@ class Cache extends BaseTaggedCache
             );
         }
 
-        return parent::put($key, $value, $ttl);
+        return TaggedCache::put($key, $value, $ttl);
     }
 
     /**
@@ -120,7 +123,7 @@ class Cache extends BaseTaggedCache
     /**
      * PSR-6 doesn't allow '{}()/\@:' as cache keys, replace with unique map.
      */
-    public static function cleanKey(string $key): string
+    public static function cleanKey(?string $key): string
     {
         return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), Cache::RESERVED_CHARACTERS_MAP, $key);
     }
