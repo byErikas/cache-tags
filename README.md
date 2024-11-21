@@ -23,6 +23,7 @@ The package can be installed using:
 composer require byerikas/classic-taggable-cache
 ```
 To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `taggable-redis`, and run `php artisan optimize`.
+It's recommended to have a scheduled command that would prune your stale tags to clean up memory. The command is `php artisan cache:prune-stale-tags`.
 
 ## TODO:
 - Add testing
