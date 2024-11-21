@@ -1,5 +1,6 @@
 # Laravel Redis/Valkey Classic Taggable Cache Implementation
-This is a package that restores the ability to retrieve/flush items from cache only using a single item tag.
+This is a package that restores the ability to retrieve/flush items from cache only using a single item tag. 
+This is done by adding a new driver, `taggable-redis`, that adds the extended functionality.
 Laravel 10+ changed how cache logic works, and removed the ability to retrieve an item using a single tag, it it's tagged with more than a single tag. E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
@@ -43,3 +44,4 @@ save your changes, and use this command to install the `main` branch version:
 ```
 composer require byerikas/classic-taggable-cache:dev-main
 ```
+Edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `taggable-redis`
