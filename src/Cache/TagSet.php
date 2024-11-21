@@ -6,7 +6,7 @@ use Illuminate\Cache\RedisTagSet as BaseTagSet;
 
 class TagSet extends BaseTagSet
 {
-    protected const TAGS_PREFIX = "\1tags\1";
+    public const TAGS_PREFIX = "\1tags\1";
 
     /**
      * Get the unique tag identifier for a given tag.
