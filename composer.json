@@ -1,25 +1,23 @@
 {
-    "name": "byerikas/valkey-taggable-cache",
-    "description": "Valkey/Redis Taggable Cache integration for Laravel, based on Symfony cache.",
+    "name": "byerikas/classic-taggable-cache",
+    "description": "Classic Redis/Valkey taggable cache integration for Laravel. Allows for retrieving / flushing multiple tagged items by a single tag.",
     "keywords": [
         "laravel",
         "cache",
         "valkey",
         "redis",
-        "symfony"
+        "tags"
     ],
-    "version": "1.0.0",
+    "version": "2.0.0",
     "license": "MIT",
     "require": {
         "php": "^8.0",
         "illuminate/support": "^11",
-        "illuminate/cache": "^11",
-        "symfony/cache": "^7.1",
-        "illuminate/redis": "^11.32"
+        "illuminate/cache": "^11"
     },
     "autoload": {
         "psr-4": {
-            "ByErikas\\ValkeyTaggableCache\\": "src/"
+            "ByErikas\\ClassicTaggableCache\\": "src/"
         }
     },
     "authors": [
@@ -32,7 +30,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ByErikas\\ValkeyTaggableCache\\ServiceProvider"
+                "ByErikas\\ClassicTaggableCache\\ServiceProvider"
             ]
         }
     }
