@@ -24,24 +24,8 @@ Using `Cache::forever()` will now store items for 100 days, not forever, to allo
 - Add package to packagist
 
 # Installation:
-In your `composer.json`, `repositories` key add this:
-```json
-{
-    "type": "vcs",
-    "url": "https://github.com/byerikas/classic-taggable-cache.git"
-}
+The package can be install using:
 ```
-it should look like this:
-```json
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/byerikas/classic-taggable-cache.git"
-    }
-]
+composer require byerikas/classic-taggable-cache
 ```
-save your changes, and use this command to install the `main` branch version:
-```
-composer require byerikas/classic-taggable-cache:dev-main
-```
-Edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `taggable-redis`
+To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `taggable-redis`
