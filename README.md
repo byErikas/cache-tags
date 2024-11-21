@@ -17,6 +17,10 @@ $result = Cache::tags(["tag2"])->get("key") //Will result in true
 ```
 Using `Cache::forever()` will now store items for 100 days, not forever, to allow the values to be memory managed, instead of tags.
 Flushing tags works much like retireval, if an item has multiple tags, one of them is enough to flush the value out of cache. This does leave some empty references in tag sets, but is mitiated with the stale tag pruning command. (see [Installation](#installation))
+```php
+Cache::tags(["tag1", "tag2"])->put("key", true);
+Cache::tags(["tag1"])->flush(); //Will flush "key"
+```
 
 # Installation:
 The package can be installed using:
