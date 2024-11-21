@@ -33,5 +33,11 @@
                 "ByErikas\\ClassicTaggableCache\\ServiceProvider"
             ]
         }
+    },
+    "provide": {
+        "psr/simple-cache-implementation": "1.0|2.0|3.0"
+    },
+    "config": {
+        "sort-packages": true
     }
 }
