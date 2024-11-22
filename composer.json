@@ -8,12 +8,13 @@
         "redis",
         "tags"
     ],
-    "version": "2.1.1",
+    "version": "2.1.2",
     "license": "MIT",
     "require": {
         "php": "^8.0",
+        "illuminate/cache": "^10|^11",
         "illuminate/support": "^10.5|^11",
-        "illuminate/cache": "^10|^11"
+        "symfony/cache-contracts": "^2.5|^3.5"
     },
     "autoload": {
         "psr-4": {
