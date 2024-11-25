@@ -31,6 +31,7 @@ Cache::tags(["tag2"])->put("key", "value");
 Cache::tags(["tag1"])->get("key"); //Will result in "value"
 Cache::tags(["tag2"])->get("key") ; //Will result in "value"
 ```
+Make sure you don't use tags as different namespace separators, they are not. Ensure you have unique keys to prevent incorrect hits.
 
 # Installation
 The package can be installed using:
