@@ -112,6 +112,8 @@ class Cache extends BaseTaggedCache
         return TaggedCache::put($key, $value, $ttl);
     }
 
+    #region Helpers
+
     /**
      * {@inheritdoc}
      */
@@ -127,4 +129,6 @@ class Cache extends BaseTaggedCache
     {
         return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), Cache::RESERVED_CHARACTERS_MAP, $key);
     }
+
+    #endregion
 }
