@@ -55,7 +55,7 @@ class Store extends BaseStore
             do {
                 [$cursor, $tagsChunk] = $connection->scan(
                     $cursor,
-                    ["match" => $prefix . TagSet::TAGS_PREFIX . "*", "count" => $chunkSize]
+                    ["match" => $prefix . TagSet::TAG_PREFIX . "*", "count" => $chunkSize]
                 );
 
                 if (! is_array($tagsChunk)) {
@@ -72,6 +72,6 @@ class Store extends BaseStore
                     yield $tag;
                 }
             } while (((string) $cursor) !== $defaultCursorValue);
-        })->map(fn(string $tagKey) => Str::match("/^" . preg_quote($prefix, "/") . TagSet::TAGS_PREFIX . "(.*)$/", $tagKey));
+        })->map(fn(string $tagKey) => Str::match("/^" . preg_quote($prefix, "/") . TagSet::TAG_PREFIX . "(.*)$/", $tagKey));
     }
 }
