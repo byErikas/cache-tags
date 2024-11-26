@@ -172,9 +172,15 @@ class Cache extends BaseTaggedCache
 
     /**
      * {@inheritdoc}
+     * 
+     * If the tagset has only 1 name, use the namespace, otherwise use globals
      */
     protected function itemKey($key)
     {
+        if (count($this->tags->getNames()) === 1) {
+            return ".tagged." . $this->tags->getNamespace() . ".{$key}";
+        }
+
         return ".tagged.{$key}";
     }
 
