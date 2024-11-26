@@ -23,7 +23,7 @@ Cache::tags(["tag1"])->flush(); //Will flush "key"
 ```
 
 # Limitations
-- Different tags partially equal different key namespaces. Non-overlapping tags can have identical keys that will point to different values, but having a tag that overlaps will overwrite the value of the key.  E.g.:
+Different tags partially equal different key namespaces. Non-overlapping tags can have identical keys that will point to different values, but having a tag that overlaps will overwrite the value of the key.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
