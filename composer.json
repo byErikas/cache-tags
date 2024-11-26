@@ -8,18 +8,27 @@
         "redis",
         "tags"
     ],
-    "version": "3.0.0",
+    "version": "3.0.1",
     "license": "MIT",
     "require": {
         "php": "^8.0",
         "illuminate/cache": "^10|^11",
         "illuminate/redis": "^11",
         "illuminate/support": "^11",
-        "symfony/cache-contracts": "^2.5|^3.5"
+        "symfony/cache-contracts": "^1.1|^2.5|^3.5"
+    },
+    "require-dev": {
+        "laravel/framework": "^11.33",
+        "pestphp/pest": "^3.5"
     },
     "autoload": {
         "psr-4": {
             "ByErikas\\ClassicTaggableCache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
         }
     },
     "authors": [
@@ -34,12 +43,18 @@
             "providers": [
                 "ByErikas\\ClassicTaggableCache\\ServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "3.0.x-dev"
         }
     },
     "provide": {
         "psr/simple-cache-implementation": "1.0|2.0|3.0"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }

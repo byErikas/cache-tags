@@ -4,11 +4,13 @@ namespace ByErikas\ClassicTaggableCache\Cache;
 
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
+use Illuminate\Cache\Events\KeyWriteFailed;
+use Illuminate\Cache\Events\KeyWritten;
 use Illuminate\Cache\Events\RetrievingKey;
+use Illuminate\Cache\Events\WritingKey;
 use Symfony\Contracts\Cache\ItemInterface;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Cache\RedisTaggedCache as BaseTaggedCache;
-use Illuminate\Cache\TaggedCache;
 use Illuminate\Support\Carbon;
 use function Illuminate\Support\defer;
 
@@ -20,13 +22,13 @@ class Cache extends BaseTaggedCache
 
     protected const RESERVED_CHARACTERS_MAP = [
         ":"     => ".",
-        "@"     => "\0",
-        "("     => "\1.",
-        ")"     => "\2",
-        "{"     => "\3",
-        "}"     => "\4",
-        "/"     => "\5",
-        "\\"    => "\6"
+        "@"     => "\1",
+        "("     => "\2",
+        ")"     => "\3",
+        "{"     => "\4",
+        "}"     => "\5",
+        "/"     => "\6",
+        "\\"    => "\7"
     ];
 
     /**
@@ -38,27 +40,29 @@ class Cache extends BaseTaggedCache
             return $this->many($key);
         }
 
-        $this->event(new RetrievingKey($this->getName(), $key));
+        $key = self::cleanKey($key);
 
-        $key = $this->itemKey(self::cleanKey($key));
+        $this->event(new RetrievingKey($this->getName(), $key, $this->tags->getNames()));
         $value = null;
 
         /**
          * @disregard P1013 - @var \TagSet
          */
         $this->tags->entries()->each(function ($item) use ($key, &$value) {
-            if ($item == $key) {
-                $value = $this->store->get($key);
+            $itemKey = str($item)->after(TagSet::KEY_PREFIX);
+
+            if ($itemKey == $key) {
+                $value = $this->store->get($item);
                 return false;
             }
         });
 
         if (!is_null($value)) {
-            $this->event(new CacheHit($this->getName(), $key, $value));
+            $this->event(new CacheHit($this->getName(), $key, $value, $this->tags->getNames()));
             return $value;
         }
 
-        $this->event(new CacheMissed($this->getName(), $key));
+        $this->event(new CacheMissed($this->getName(), $key, $this->tags->getNames()));
         return value($default);
     }
 
@@ -67,25 +71,25 @@ class Cache extends BaseTaggedCache
      */
     public function add($key, $value, $ttl = null)
     {
-        $key = self::cleanKey($key);
+        $existingKey = false;
+        /**
+         * @disregard P1013 - @var \TagSet
+         */
+        $this->tags->entries()->each(function ($item) use (&$key, &$existingKey) {
+            $itemKey = str($item)->after(TagSet::KEY_PREFIX);
 
-        $seconds = null;
-
-        if ($ttl !== null) {
-            $seconds = $this->getSeconds($ttl);
-
-            if ($seconds > 0) {
-                /**
-                 * @disregard P1013 - @var \TagSet
-                 */
-                $this->tags->addEntry(
-                    $this->itemKey($key),
-                    $seconds
-                );
+            if ($itemKey == $key) {
+                $key = $item;
+                $existingKey = true;
+                return false;
             }
+        });
+
+        if ($existingKey) {
+            return false;
         }
 
-        return TaggedCache::add($key, $value, $ttl);
+        return $this->put($key, $value, $ttl);
     }
 
     /**
@@ -93,7 +97,24 @@ class Cache extends BaseTaggedCache
      */
     public function put($key, $value, $ttl = null)
     {
-        $key = self::cleanKey($key);
+        $baseKey = self::cleanKey($key);
+        $key = self::cleanKey($baseKey);
+
+        $existingKey = false;
+        /**
+         * @disregard P1013 - @var \TagSet
+         */
+        $this->tags->entries()->each(function ($item) use (&$key, &$existingKey) {
+            $itemKey = str($item)->after(TagSet::KEY_PREFIX);
+
+            if ($itemKey == $key) {
+                $key = $item;
+                $existingKey = true;
+                return false;
+            }
+        });
+
+        $key = $existingKey == true ? $key : $this->itemKey($baseKey);
 
         if (is_null($ttl)) {
             return $this->forever($key, $value);
@@ -105,13 +126,10 @@ class Cache extends BaseTaggedCache
             /**
              * @disregard P1013 - @var \TagSet
              */
-            $this->tags->addEntry(
-                $this->itemKey($key),
-                $seconds
-            );
+            $this->tags->addEntry($key, $seconds);
         }
 
-        return TaggedCache::put($key, $value, $ttl);
+        return $this->putCache($key, $value, $ttl);
     }
 
     /**
@@ -175,7 +193,8 @@ class Cache extends BaseTaggedCache
      */
     protected function itemKey($key)
     {
-        return ".tagged.{$key}";
+        /** @disregard P1013 */
+        return "\0tagged" . $this->tags->tagNamePrefix() . TagSet::KEY_PREFIX . "{$key}";
     }
 
     /**
@@ -186,5 +205,66 @@ class Cache extends BaseTaggedCache
         return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), Cache::RESERVED_CHARACTERS_MAP, $key);
     }
 
+    #endregion
+
+    #region logic overrides
+
+    /**
+     * {@inheritDoc}
+     */
+    public function forever($key, $value)
+    {
+        /**@disregard P1013 */
+        $this->tags->addEntry($key);
+
+        $this->event(new WritingKey($this->getName(), $key, $value, null, $this->tags->getNames()));
+
+        $result = $this->store->forever($key, $value);
+
+        if ($result) {
+            $this->event(new KeyWritten($this->getName(), $key, $value, null, $this->tags->getNames()));
+        } else {
+            $this->event(new KeyWriteFailed($this->getName(), $key, $value, null, $this->tags->getNames()));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Store an item in the cache.
+     *
+     * @param  array|string  $key
+     * @param  mixed  $value
+     * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
+     * @return bool
+     */
+    public function putCache($key, $value, $ttl = null)
+    {
+        if (is_array($key)) {
+            return $this->putMany($key, $value);
+        }
+
+        if ($ttl === null) {
+            return $this->forever($key, $value);
+        }
+
+        $seconds = $this->getSeconds($ttl);
+
+        if ($seconds <= 0) {
+            return $this->forget($key);
+        }
+
+        $this->event(new WritingKey($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
+
+        $result = $this->store->put($key, $value, $seconds);
+
+        if ($result) {
+            $this->event(new KeyWritten($this->getName(), $key, $value, $seconds), $this->tags->getNames());
+        } else {
+            $this->event(new KeyWriteFailed($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
+        }
+
+        return $result;
+    }
     #endregion
 }
