@@ -71,7 +71,25 @@ class Cache extends BaseTaggedCache
      */
     public function add($key, $value, $ttl = null)
     {
-        $this->put($key, $value, $ttl);
+        $existingKey = false;
+        /**
+         * @disregard P1013 - @var \TagSet
+         */
+        $this->tags->entries()->each(function ($item) use (&$key, &$existingKey) {
+            $itemKey = str($item)->after(TagSet::KEY_PREFIX);
+
+            if ($itemKey == $key) {
+                $key = $item;
+                $existingKey = true;
+                return false;
+            }
+        });
+
+        if ($existingKey) {
+            return false;
+        }
+
+        return $this->put($key, $value, $ttl);
     }
 
     /**
