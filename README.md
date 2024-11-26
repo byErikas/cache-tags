@@ -1,6 +1,6 @@
 # Laravel Redis/Valkey Classic Taggable Cache Driver Implementation
 This package restores the ability to retrieve/flush items from the cache only using a single item tag. 
-This is done by adding a new store driver, `taggable-redis`, that adds the different functionality.
+This is done by adding a new store driver, `taggable-redis`, that adds a different functionality.
 Laravel 10+ changed how cache logic works, removing the ability to retrieve an item using a single tag if it's tagged with more than one tag. E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
@@ -23,10 +23,10 @@ Cache::tags(["tag1"])->flush(); //Will flush "key"
 ```
 
 # Limitations
-- Different tags partially equal different tag groups. Non-overlapping tags can have identical keys that will point to different values, but having a tag that overlaps will overwrite the value of the key.  E.g.:
+- Different tags partially equal different key namespaces. Non-overlapping tags can have identical keys that will point to different values, but having a tag that overlaps will overwrite the value of the key.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
-/** This overwrites the above key, since there is a shared tag. */
+/** This overwrites the key above since there is a shared tag. */
 Cache::tags(["tag2"])->put("key", "value2");
 
 Cache::put("key", "value");
