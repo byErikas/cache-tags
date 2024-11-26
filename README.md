@@ -32,7 +32,7 @@ Cache::tags(["tag2"])->put("key", "value2");
 Cache::put("key", "value");
 Cache::tags(["tag3"])->put("key", "value3");
 
-Cache::get("key") //Will result in "value"
+Cache::get("key"); //Will result in "value"
 Cache::tags(["tag1"])->get("key"); //Will result in "value2"
 Cache::tags(["tag2"])->get("key") ; //Will result in "value2"
 Cache::tags(["tag3"])->get("key") ; //Will result in "value3"
