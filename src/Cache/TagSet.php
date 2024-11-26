@@ -63,9 +63,9 @@ class TagSet extends BaseTagSet
     }
 
     /**
-     * Build a permutation generator, has solid performance when considering.
+     * Build a tag permutation generator.
      *
-     * Builds 5 tag permutations in ~0.6ms.
+     * Builds 5 tag permutations in ~0.06ms.
      */
     private function getPermutations(array $elements): Generator
     {
