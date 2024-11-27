@@ -8,7 +8,6 @@ use Illuminate\Cache\Events\KeyWriteFailed;
 use Illuminate\Cache\Events\KeyWritten;
 use Illuminate\Cache\Events\RetrievingKey;
 use Illuminate\Cache\Events\WritingKey;
-use Symfony\Contracts\Cache\ItemInterface;
 use Illuminate\Support\InteractsWithTime;
 use Illuminate\Cache\RedisTaggedCache as BaseTaggedCache;
 use Illuminate\Support\Carbon;
@@ -20,6 +19,7 @@ class Cache extends BaseTaggedCache
 
     public const DEFAULT_CACHE_TTL = 8640000;
 
+    protected const RESERVED_CHARACTERS = '{}()/\@:';
     protected const RESERVED_CHARACTERS_MAP = [
         ":"     => ".",
         "@"     => "\1",
@@ -133,15 +133,7 @@ class Cache extends BaseTaggedCache
     }
 
     /**
-     * Retrieve an item from the cache by key, refreshing it in the background if it is stale.
-     *
-     * @template TCacheValue
-     *
-     * @param  string  $key
-     * @param  array{ 0: \DateTimeInterface|\DateInterval|int, 1: \DateTimeInterface|\DateInterval|int }  $ttl
-     * @param  (callable(): TCacheValue)  $callback
-     * @param  array{ seconds?: int, owner?: string }|null  $lock
-     * @return TCacheValue
+     * {@inheritDoc}
      */
     public function flexible($key, $ttl, $callback, $lock = null)
     {
@@ -202,7 +194,7 @@ class Cache extends BaseTaggedCache
      */
     public static function cleanKey(?string $key): string
     {
-        return str_replace(str_split(ItemInterface::RESERVED_CHARACTERS), Cache::RESERVED_CHARACTERS_MAP, $key);
+        return str_replace(str_split(Cache::RESERVED_CHARACTERS), Cache::RESERVED_CHARACTERS_MAP, $key);
     }
 
     #endregion
