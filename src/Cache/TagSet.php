@@ -7,11 +7,29 @@ use Generator;
 use Illuminate\Cache\RedisTagSet as BaseTagSet;
 use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Support\LazyCollection;
+use Illuminate\Contracts\Cache\Store;
 
 class TagSet extends BaseTagSet
 {
     public const TAG_PREFIX = "tags\0";
     public const KEY_PREFIX = "\0key\0";
+
+    protected ?LazyCollection $entries;
+
+    /**
+     * Create a new TagSet instance.
+     *
+     * @param  \Illuminate\Contracts\Cache\Store  $store
+     * @param  array  $names
+     * @return void
+     */
+    public function __construct(Store $store, array $names = [])
+    {
+        $this->store = $store;
+        $this->names = $names;
+
+        $this->setEntries();
+    }
 
     /**
      * Get the unique tag identifier for a given tag.
@@ -53,43 +71,11 @@ class TagSet extends BaseTagSet
      */
     public function entries()
     {
-        /** @disregard P1013 */
-        $connection = $this->store->connection();
+        if (!isset($this->entries)) {
+            $this->setEntries();
+        }
 
-        $defaultCursorValue = match (true) {
-            $connection instanceof PhpRedisConnection && version_compare(phpversion('redis'), '6.1.0', '>=') => null,
-            default => '0',
-        };
-
-        $result = LazyCollection::make(function () use ($connection, $defaultCursorValue) {
-            foreach ($this->getNamespaces() as $tagKey) {
-                $cursor = $defaultCursorValue;
-
-                do {
-                    [$cursor, $entries] = $connection->zscan(
-                        $this->store->getPrefix() . $tagKey,
-                        $cursor,
-                        ['match' =>  "*" . self::KEY_PREFIX . "*", 'count' => 1000]
-                    );
-
-                    if (! is_array($entries)) {
-                        break;
-                    }
-
-                    $entries = array_unique(array_keys($entries));
-
-                    if (count($entries) === 0) {
-                        continue;
-                    }
-
-                    foreach ($entries as $entry) {
-                        yield $entry;
-                    }
-                } while (((string) $cursor) !== $defaultCursorValue);
-            }
-        });
-
-        return $result;
+        return $this->entries;
     }
 
     /**
@@ -115,6 +101,8 @@ class TagSet extends BaseTagSet
                 $this->store->connection()->zadd($this->store->getPrefix() . $tagKey, $ttl, $key);
             }
         }
+
+        $this->setEntries();
     }
 
     #region Helpers
@@ -151,6 +139,48 @@ class TagSet extends BaseTagSet
                 }
             }
         }
+    }
+
+    /**
+     * Set the current tagset entries collection
+     */
+    private function setEntries()
+    {
+        /** @disregard P1013 */
+        $connection = $this->store->connection();
+
+        $defaultCursorValue = match (true) {
+            $connection instanceof PhpRedisConnection && version_compare(phpversion('redis'), '6.1.0', '>=') => null,
+            default => '0',
+        };
+
+        $this->entries = LazyCollection::make(function () use ($connection, $defaultCursorValue) {
+            foreach ($this->getNamespaces() as $tagKey) {
+                $cursor = $defaultCursorValue;
+
+                do {
+                    [$cursor, $entries] = $connection->zscan(
+                        $this->store->getPrefix() . $tagKey,
+                        $cursor,
+                        ['match' =>  "*" . self::KEY_PREFIX . "*", 'count' => 1000]
+                    );
+
+                    if (! is_array($entries)) {
+                        break;
+                    }
+
+                    $entries = array_unique(array_keys($entries));
+
+                    if (count($entries) === 0) {
+                        continue;
+                    }
+
+                    foreach ($entries as $entry) {
+                        yield $entry;
+                    }
+                } while (((string) $cursor) !== $defaultCursorValue);
+            }
+        });
     }
     #endregion
 }
