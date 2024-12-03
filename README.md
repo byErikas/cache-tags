@@ -23,16 +23,13 @@ Cache::tags(["tag1"])->flush(); //Will flush "key"
 ```
 
 # Limitations
-Different tags DON'T equal different key namespaces. While tagged and non-tagged items are stored differently, as the tagged items get the `tagged` prefix, ensure keys are unique - tags only tag, not differ keys.  E.g.:
+Different tags DON'T equal different key namespaces. Tagged and non tagged items use the same key sequence. Ensure keys are unique - tags only tag, not differ keys.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
 Cache::tags(["tag2"])->put("key", "value2");
 Cache::tags(["tag1"])->get("key"); //Will result in "value2"
-
-Cache::tags(["tag3"])->put("key", "value3");
-Cache::tags(["tag1"])->get("key"); //Will result in "value3"
-Cache::tags(["tag3"])->get("key") ; //Will result in "value3"
+Cache::get("key") //Will result in "value2"
 ```
 Make sure you don't use overlapping tags if you want to use generic keys.
 
@@ -41,7 +38,7 @@ The package can be installed using:
 ```
 composer require byerikas/classic-taggable-cache
 ```
-To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `taggable-redis`, and run `php artisan optimize`.
+To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `redis-tags`, and run `php artisan optimize`.
 It's recommended to have a scheduled command that would prune your stale tags to clean up memory. The command is `php artisan cache:prune-stale-tags`.
 
 To prevent any memory issues use Redis/Valkey `maxmemory-policy` of `volatile-*`.

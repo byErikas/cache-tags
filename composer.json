@@ -1,6 +1,6 @@
 {
-    "name": "byerikas/classic-taggable-cache",
-    "description": "Classic Redis/Valkey taggable cache integration for Laravel. Allows for retrieving / flushing multiple tagged items by a single tag.",
+    "name": "byerikas/cache-tags",
+    "description": "Allows for Redis/Valkey cache flushing multiple tagged items by a single tag.",
     "keywords": [
         "laravel",
         "cache",
@@ -8,21 +8,21 @@
         "redis",
         "tags"
     ],
-    "version": "3.0.5",
+    "version": "4.0.0",
     "license": "MIT",
     "require": {
         "php": "^8.0",
-        "illuminate/cache": "^11",
-        "illuminate/redis": "^11",
-        "illuminate/support": "^11"
+        "illuminate/cache": "^10|^11",
+        "illuminate/redis": "^10|^11",
+        "illuminate/support": "^10|^11"
     },
     "require-dev": {
-        "laravel/framework": "^11.33",
+        "laravel/framework": "^10|^11",
         "pestphp/pest": "^3.5"
     },
     "autoload": {
         "psr-4": {
-            "ByErikas\\ClassicTaggableCache\\": "src/"
+            "ByErikas\\CacheTags\\": "src/"
         }
     },
     "autoload-dev": {
@@ -40,16 +40,12 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ByErikas\\ClassicTaggableCache\\ServiceProvider"
+                "ByErikas\\CacheTags\\ServiceProvider"
             ]
         },
         "branch-alias": {
-            "dev-main": "3.0.x-dev",
-            "dev-v2.1.x": "2.1.x-dev"
+            "dev-main": "4.0.x-dev"
         }
-    },
-    "provide": {
-        "psr/simple-cache-implementation": "1.0|2.0|3.0"
     },
     "config": {
         "sort-packages": true,

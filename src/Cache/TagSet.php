@@ -1,6 +1,6 @@
 <?php
 
-namespace ByErikas\ClassicTaggableCache\Cache;
+namespace ByErikas\CacheTags\Cache;
 
 use Carbon\Carbon;
 use Illuminate\Cache\RedisTagSet as BaseTagSet;
@@ -28,17 +28,6 @@ class TagSet extends BaseTagSet
     public function tagIds()
     {
         return array_map([$this, 'tagId'], $this->names);
-    }
-
-    /**
-     * Get the tag identifier key for a given tag.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    public function tagKey($name)
-    {
-        return self::TAG_PREFIX . $name;
     }
 
     /**

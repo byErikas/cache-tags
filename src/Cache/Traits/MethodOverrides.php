@@ -1,9 +1,7 @@
 <?php
 
-namespace ByErikas\ClassicTaggableCache\Cache\Traits;
+namespace ByErikas\CacheTags\Cache\Traits;
 
-use ByErikas\ClassicTaggableCache\Cache\Cache;
-use Carbon\Carbon;
 use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
@@ -23,8 +21,6 @@ use Illuminate\Cache\Events\WritingKey;
  */
 trait MethodOverrides
 {
-    use CleansKeys;
-
     /**
      * Retrieve an item from the cache by key.
      *
@@ -36,10 +32,6 @@ trait MethodOverrides
     {
         if (is_array($key)) {
             return $this->many($key);
-        }
-
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
         }
 
         $tagNames = $this->tags->getNames();
@@ -66,10 +58,6 @@ trait MethodOverrides
      */
     public function add($key, $value, $ttl = null)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         $seconds = null;
 
         if ($ttl !== null) {
@@ -93,10 +81,6 @@ trait MethodOverrides
      */
     public function put($key, $value, $ttl = null)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         if (is_null($ttl)) {
             return $this->forever($key, $value, true);
         }
@@ -138,60 +122,6 @@ trait MethodOverrides
     }
 
     /**
-     * Retrieve an item from the cache by key, refreshing it in the background if it is stale.
-     *
-     * @template TCacheValue
-     *
-     * @param  string  $key
-     * @param  array{ 0: \DateTimeInterface|\DateInterval|int, 1: \DateTimeInterface|\DateInterval|int }  $ttl
-     * @param  (callable(): TCacheValue)  $callback
-     * @param  array{ seconds?: int, owner?: string }|null  $lock
-     * @return TCacheValue
-     */
-    public function flexible($key, $ttl, $callback, $lock = null)
-    {
-        $key = self::cleanKey($key);
-
-        [
-            $key => $value,
-            "illuminate.cache.flexible.created.{$key}" => $created,
-        ] = $this->many([$key, "illuminate.cache.flexible.created.{$key}"]);
-
-        if (in_array(null, [$value, $created], true)) {
-            return tap(value($callback), fn($value) => $this->putMany([
-                $key => $value,
-                "illuminate.cache.flexible.created.{$key}" => Carbon::now()->getTimestamp(),
-            ], $ttl[1]));
-        }
-
-        if (($created + $this->getSeconds($ttl[0])) > Carbon::now()->getTimestamp()) {
-            return $value;
-        }
-
-        $refresh = function () use ($key, $ttl, $callback, $lock, $created) {
-            /** @disregard P1013 */
-            $this->store->lock(
-                "illuminate.cache.flexible.lock.{$key}",
-                $lock['seconds'] ?? 0,
-                $lock['owner'] ?? null,
-            )->get(function () use ($key, $callback, $created, $ttl) {
-                if ($created !== $this->get("illuminate.cache.flexible.created.{$key}")) {
-                    return;
-                }
-
-                $this->putMany([
-                    $key => value($callback),
-                    "illuminate.cache.flexible.created.{$key}" => Carbon::now()->getTimestamp(),
-                ], $ttl[1]);
-            });
-        };
-
-        defer($refresh, "illuminate.cache.flexible.{$key}");
-
-        return $value;
-    }
-
-    /**
      * Store an item in the cache indefinitely.
      *
      * @param  string  $key
@@ -200,10 +130,6 @@ trait MethodOverrides
      */
     public function forever($key, $value)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         /**@disregard P1013 */
         $this->tags->addEntry($key);
 
@@ -277,10 +203,6 @@ trait MethodOverrides
      */
     public function increment($key, $value = 1)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         $this->tags->addEntry($key, updateWhen: 'NX');
         return $this->store->increment($key, $value);
     }
@@ -294,10 +216,6 @@ trait MethodOverrides
      */
     public function decrement($key, $value = 1)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         $this->tags->addEntry($key, updateWhen: 'NX');
         return $this->store->decrement($key, $value);
     }
@@ -310,10 +228,6 @@ trait MethodOverrides
      */
     public function forget($key)
     {
-        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
-            $key = $this->itemKey(self::cleanKey($key));
-        }
-
         $tags = $this->tags->getNames();
         $this->event(new ForgettingKey($this->getName(), $key));
 
