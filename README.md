@@ -1,29 +1,30 @@
-# Laravel Redis/Valkey Classic Taggable Cache Driver Implementation
-This package restores the ability to retrieve/flush items from the cache only using a single item tag. 
-This is done by adding a new store driver, `taggable-redis`, that adds a different functionality.
-Laravel 10+ changed how cache logic works, removing the ability to retrieve an item using a single tag if it's tagged with more than one tag. E.g.:
+# Laravel Redis/Valkey Cache Tags 
+Allows for Redis/Valkey cache flushing multiple tagged items by a single tag. 
+This is done by adding a new store driver, `redis-tags`, that adds a different functionality.
+Laravel 10+ changed how cache logic works, removing the ability to retrieve an item if not using the exact tags that were present when setting a cache key. E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
-$result = Cache::tags(["tag1"])->get("key") //Will result in the default value (null)
-$result = Cache::tags(["tag1", "tag2"])->get("key") //Will result in true
-$result = Cache::tags(["tag2", "tag1"])->get("key") //Will result in the default value (null)
+Cache::tags(["tag1"])->get("key"); //Will result in the default value (null)
+Cache::tags(["tag1", "tag2"])->get("key"); //Will result in true
+Cache::tags(["tag2", "tag1"])->get("key"); //Will result in the default value (null)
 ```
-This restores the ability to retrieve items only using a single tag, and without caring for the tag order. E.g:
+This changes how that works. Tags no longer have impact on keys. Tags are used strictly for tagging, and not for creating different key namespaces. E.g:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
-$result = Cache::tags(["tag1"])->get("key") //Will result in true
-$result = Cache::tags(["tag2", "tag1"])->get("key") //Will result in true
-$result = Cache::tags(["tag2"])->get("key") //Will result in true
+Cache::tags(["tag1"])->get("key"); //Will result in true
+Cache::tags(["tag2", "tag1"])->get("key"); //Will result in true
+Cache::get("key"); //Will result in true
 ```
 Using `Cache::forever()` will now store items for 100 days, not forever, to allow the values to be memory managed, instead of tags.
-Flushing tags works much like retrieval, if an item has multiple tags, one is enough to flush the value out of the cache. This leaves some empty references in tag sets but is mitigated by the stale tag pruning command. (see [Installation](#installation))
+Flushing tags - one is enough to flush the value out of the cache. This leaves some empty references in tag sets but is mitigated by the stale tag pruning command. (see [Installation](#installation))
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
 Cache::tags(["tag1"])->flush(); //Will flush "key"
+Cache::flush(); //Will flush "key"
 ```
 
 # Limitations
-Different tags DON'T equal different key namespaces. Tagged and non tagged items use the same key sequence. Ensure keys are unique - tags only tag, not differ keys.  E.g.:
+Different tags DON'T equal different key namespaces. Tagged and non tagged items use the same key sequence. Ensure keys are unique - tags only tag, not alter keys.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
@@ -31,17 +32,14 @@ Cache::tags(["tag2"])->put("key", "value2");
 Cache::tags(["tag1"])->get("key"); //Will result in "value2"
 Cache::get("key") //Will result in "value2"
 ```
-Make sure you don't use overlapping tags if you want to use generic keys.
 
 # Installation
+Please read the [Limitations](#limitations) section before use as this can have breaking changes.
 The package can be installed using:
 ```
-composer require byerikas/classic-taggable-cache
+composer require byerikas/cache-tags
 ```
 To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `redis-tags`, and run `php artisan optimize`.
 It's recommended to have a scheduled command that would prune your stale tags to clean up memory. The command is `php artisan cache:prune-stale-tags`.
 
 To prevent any memory issues use Redis/Valkey `maxmemory-policy` of `volatile-*`.
-
-## TODO:
-- Add testing
