@@ -10,6 +10,7 @@ class Cache extends BaseTaggedCache
     use MethodOverrides;
 
     public const DEFAULT_CACHE_TTL = 8640000;
+    public const DEFAULT_KEY_PREFIX = "tagged\0";
 
     /**
      * {@inheritdoc}
@@ -17,6 +18,6 @@ class Cache extends BaseTaggedCache
     protected function itemKey($key)
     {
         /** @disregard P1013 */
-        return "tagged\0" . $this->tags->tagNamePrefix() . TagSet::KEY_PREFIX . "{$key}";
+        return Cache::DEFAULT_KEY_PREFIX . "{$key}";
     }
 }

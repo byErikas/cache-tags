@@ -2,6 +2,7 @@
 
 namespace ByErikas\ClassicTaggableCache\Cache\Traits;
 
+use ByErikas\ClassicTaggableCache\Cache\Cache;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Cache\Events\CacheHit;
@@ -22,7 +23,7 @@ use Illuminate\Cache\Events\WritingKey;
  */
 trait MethodOverrides
 {
-    use CleansKeys, RetrievesKeys;
+    use CleansKeys;
 
     /**
      * Retrieve an item from the cache by key.
@@ -31,31 +32,27 @@ trait MethodOverrides
      * @param  mixed  $default
      * @return mixed
      */
-    public function get($key, $default = null, bool $useOriginalKey = false): mixed
+    public function get($key, $default = null): mixed
     {
         if (is_array($key)) {
             return $this->many($key);
         }
 
-        $originalKey = self::cleanKey($key);
-        $tagNames = $this->tags->getNames();
-
-        $this->event(new RetrievingKey($this->getName(), $originalKey, $tagNames));
-
-        if ($useOriginalKey) {
-            $key = $originalKey;
-        } else {
-            [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
         }
 
+        $tagNames = $this->tags->getNames();
+
+        $this->event(new RetrievingKey($this->getName(), $key, $tagNames));
         $value = $this->store->get($key);
 
         if (!is_null($value)) {
-            $this->event(new CacheHit($this->getName(), $originalKey, $value, $tagNames));
+            $this->event(new CacheHit($this->getName(), $key, $value, $tagNames));
             return $value;
         }
 
-        $this->event(new CacheMissed($this->getName(), $originalKey, $tagNames));
+        $this->event(new CacheMissed($this->getName(), $key, $tagNames));
         return value($default);
     }
 
@@ -69,14 +66,21 @@ trait MethodOverrides
      */
     public function add($key, $value, $ttl = null)
     {
-        $originalKey = self::cleanKey($key);
-
-        [$exists, $key] = $this->getKey($originalKey);
-        if ($exists) {
-            return false;
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
         }
 
-        return $this->put($key, $value, $ttl, true);
+        $seconds = null;
+
+        if ($ttl !== null) {
+            $seconds = $this->getSeconds($ttl);
+
+            if ($seconds > 0) {
+                $this->tags->addEntry($key, $seconds);
+            }
+        }
+
+        return parent::add($key, $value, $ttl);
     }
 
     /**
@@ -87,14 +91,10 @@ trait MethodOverrides
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
      * @return bool
      */
-    public function put($key, $value, $ttl = null, bool $useOriginalKey = false)
+    public function put($key, $value, $ttl = null)
     {
-        $originalKey = self::cleanKey($key);
-
-        if ($useOriginalKey) {
-            $key = $originalKey;
-        } else {
-            [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
         }
 
         if (is_null($ttl)) {
@@ -124,14 +124,14 @@ trait MethodOverrides
             return $this->forget($key);
         }
 
-        $this->event(new WritingKey($this->getName(), $originalKey, $value, $seconds, $this->tags->getNames()));
+        $this->event(new WritingKey($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
 
         $result = $this->store->put($key, $value, $seconds);
 
         if ($result) {
-            $this->event(new KeyWritten($this->getName(), $originalKey, $value, $seconds), $this->tags->getNames());
+            $this->event(new KeyWritten($this->getName(), $key, $value, $seconds), $this->tags->getNames());
         } else {
-            $this->event(new KeyWriteFailed($this->getName(), $originalKey, $value, $seconds, $this->tags->getNames()));
+            $this->event(new KeyWriteFailed($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
         }
 
         return $result;
@@ -198,25 +198,23 @@ trait MethodOverrides
      * @param  mixed  $value
      * @return bool
      */
-    public function forever($key, $value, bool $useOriginalKey = false)
+    public function forever($key, $value, $useOriginalKey = false)
     {
-        $originalKey = self::cleanKey($key);
-
-        if (!$useOriginalKey) {
-            [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
         }
 
         /**@disregard P1013 */
         $this->tags->addEntry($key);
 
-        $this->event(new WritingKey($this->getName(), $originalKey, $value, null, $this->tags->getNames()));
+        $this->event(new WritingKey($this->getName(), $key, $value, null, $this->tags->getNames()));
 
         $result = $this->store->forever($key, $value);
 
         if ($result) {
-            $this->event(new KeyWritten($this->getName(), $originalKey, $value, null, $this->tags->getNames()));
+            $this->event(new KeyWritten($this->getName(), $key, $value, null, $this->tags->getNames()));
         } else {
-            $this->event(new KeyWriteFailed($this->getName(), $originalKey, $value, null, $this->tags->getNames()));
+            $this->event(new KeyWriteFailed($this->getName(), $key, $value, null, $this->tags->getNames()));
         }
 
         return $result;
@@ -234,10 +232,7 @@ trait MethodOverrides
      */
     public function remember($key, $ttl, Closure $callback)
     {
-        $originalKey = self::cleanKey($key);
-        [$exists, $key] = $this->getKey($originalKey);
-
-        $value = $this->get($key, useOriginalKey: true);
+        $value = $this->get($key);
 
         if (! is_null($value)) {
             return $value;
@@ -245,7 +240,7 @@ trait MethodOverrides
 
         $value = $callback();
 
-        $this->put($key, $value, value($ttl, $value), true);
+        $this->put($key, $value, value($ttl, $value));
 
         return $value;
     }
@@ -261,16 +256,13 @@ trait MethodOverrides
      */
     public function rememberForever($key, Closure $callback)
     {
-        $originalKey = self::cleanKey($key);
-        [$exists, $key] = $this->getKey($originalKey);
-
-        $value = $this->get($key, useOriginalKey: true);
+        $value = $this->get($key);
 
         if (! is_null($value)) {
             return $value;
         }
 
-        $this->forever($key, $value = $callback(), true);
+        $this->forever($key, $value = $callback());
 
         return $value;
     }
@@ -285,8 +277,9 @@ trait MethodOverrides
      */
     public function increment($key, $value = 1)
     {
-        $originalKey = self::cleanKey($key);
-        [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
+        }
 
         $this->tags->addEntry($key, updateWhen: 'NX');
         return $this->store->increment($key, $value);
@@ -301,8 +294,9 @@ trait MethodOverrides
      */
     public function decrement($key, $value = 1)
     {
-        $originalKey = self::cleanKey($key);
-        [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
+        }
 
         $this->tags->addEntry($key, updateWhen: 'NX');
         return $this->store->decrement($key, $value);
@@ -316,18 +310,18 @@ trait MethodOverrides
      */
     public function forget($key)
     {
-        $originalKey = self::cleanKey($key);
-        [$exists, $key] = $this->getKey($originalKey);
+        if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
+            $key = $this->itemKey(self::cleanKey($key));
+        }
 
         $tags = $this->tags->getNames();
+        $this->event(new ForgettingKey($this->getName(), $key));
 
-        $this->event(new ForgettingKey($this->getName(), $originalKey));
-
-        return tap($this->store->forget($key), function ($result) use ($originalKey, $tags) {
+        return tap($this->store->forget($key), function ($result) use ($key, $tags) {
             if ($result) {
-                $this->event(new KeyForgotten($this->getName(), $originalKey, $tags));
+                $this->event(new KeyForgotten($this->getName(), $key, $tags));
             } else {
-                $this->event(new KeyForgetFailed($this->getName(), $originalKey, $tags));
+                $this->event(new KeyForgetFailed($this->getName(), $key, $tags));
             }
         });
     }

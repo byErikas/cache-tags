@@ -23,18 +23,15 @@ Cache::tags(["tag1"])->flush(); //Will flush "key"
 ```
 
 # Limitations
-Different tags partially equal different key namespaces. Non-overlapping tags can have identical keys that will point to different values, but having a tag that overlaps will overwrite the value of the key.  E.g.:
+Different tags DON'T equal different key namespaces. While tagged and non-tagged items are stored differently, as the tagged items get the `tagged` prefix, ensure keys are unique - tags only tag, not differ keys.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
 Cache::tags(["tag2"])->put("key", "value2");
-
-Cache::put("key", "value");
-Cache::tags(["tag3"])->put("key", "value3");
-
-Cache::get("key"); //Will result in "value"
 Cache::tags(["tag1"])->get("key"); //Will result in "value2"
-Cache::tags(["tag2"])->get("key") ; //Will result in "value2"
+
+Cache::tags(["tag3"])->put("key", "value3");
+Cache::tags(["tag1"])->get("key"); //Will result in "value3"
 Cache::tags(["tag3"])->get("key") ; //Will result in "value3"
 ```
 Make sure you don't use overlapping tags if you want to use generic keys.
