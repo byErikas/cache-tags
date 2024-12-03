@@ -198,7 +198,7 @@ trait MethodOverrides
      * @param  mixed  $value
      * @return bool
      */
-    public function forever($key, $value, $useOriginalKey = false)
+    public function forever($key, $value)
     {
         if (!str($key)->startsWith(Cache::DEFAULT_KEY_PREFIX)) {
             $key = $this->itemKey(self::cleanKey($key));
