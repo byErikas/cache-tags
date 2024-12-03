@@ -30,7 +30,7 @@ Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
 Cache::tags(["tag2"])->put("key", "value2");
 Cache::tags(["tag1"])->get("key"); //Will result in "value2"
-Cache::get("key") //Will result in "value2"
+Cache::get("key"); //Will result in "value2"
 ```
 
 # Installation
