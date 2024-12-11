@@ -8,7 +8,7 @@ Cache::tags(["tag1"])->get("key"); //Will result in the default value (null)
 Cache::tags(["tag1", "tag2"])->get("key"); //Will result in true
 Cache::tags(["tag2", "tag1"])->get("key"); //Will result in the default value (null)
 ```
-This changes how that works. Tags no longer have impact on keys. Tags are used strictly for tagging, and not for creating different key namespaces. E.g:
+This changes how that works. Tags no longer have an impact on keys. Tags are used strictly for tagging, and not for creating different key namespaces. E.g:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", true);
 Cache::tags(["tag1"])->get("key"); //Will result in true
@@ -24,7 +24,7 @@ Cache::flush(); //Will flush "key"
 ```
 
 # Limitations
-Different tags DON'T equal different key namespaces. Tagged and non tagged items use the same key sequence. Ensure keys are unique - tags only tag, not alter keys.  E.g.:
+Different tags DON'T equal different key namespaces. Tagged and non-tagged items use the same key sequence. Ensure keys are unique - tags only tag, not alter keys.  E.g.:
 ```php
 Cache::tags(["tag1", "tag2"])->put("key", "value1");
 /** This overwrites the key above since there is a shared tag. */
