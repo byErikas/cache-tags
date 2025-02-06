@@ -193,7 +193,6 @@ trait MethodOverrides
         return $value;
     }
 
-
     /**
      * Increment the value of an item in the cache.
      *

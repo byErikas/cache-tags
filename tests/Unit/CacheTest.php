@@ -1,54 +1,86 @@
 <?php
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Artisan;
 
 it("#1 can store and retrieve an item from the cache", function () {
-    Cache::store("redis")->put("test_key", "test_value", 60);
-    $value = Cache::store("redis")->get("test_key");
-    expect($value)->toBe("test_value");
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    $value = $cache->get($key);
+
+    expect($value)->toBe("value");
 });
 
 it("#2 can check if an item exists in the cache", function () {
-    Cache::store("redis")->put("exists_key", "exists_value", 60);
-    expect(Cache::store("redis")->has("exists_key"))->toBeTrue();
-    expect(Cache::store("redis")->has("missing_key"))->toBeFalse();
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    expect($cache->has($key))->toBeTrue();
+    expect($cache->has($key . "_missing"))->toBeFalse();
 });
 
 it("#3 can check if an item is missing from the cache", function () {
-    Cache::store("redis")->put("exists_key", "exists_value", 60);
-    expect(Cache::store("redis")->missing("exists_key"))->toBeFalse();
-    expect(Cache::store("redis")->missing("missing_key"))->toBeTrue();
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    expect($cache->missing($key))->toBeFalse();
+    expect($cache->missing($key . "_missing"))->toBeTrue();
 });
 
 it("#4 can store and retrieve multiple items from the cache", function () {
-    Cache::store("redis")->putMany(["key1" => "value1", "key2" => "value2"], 60);
-    $values = Cache::store("redis")->many(["key1", "key2"]);
-    expect($values)->toBe(["key1" => "value1", "key2" => "value2"]);
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->putMany(["{$key}_1" => "value_1", "{$key}_2" => "value_2"], 5);
+    $values = $cache->many(["{$key}_1", "{$key}_2"]);
+    expect($values)->toBe(["{$key}_1" => "value_1", "{$key}_2" => "value_2"]);
 });
 
 it("#5 can increment and decrement a value in the cache", function () {
-    Cache::store("redis")->put("counter", 10, 60);
-    Cache::store("redis")->increment("counter", 5);
-    expect(Cache::store("redis")->get("counter"))->toEqual(15);
-    Cache::store("redis")->decrement("counter", 3);
-    expect(Cache::store("redis")->get("counter"))->toEqual(12);
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->put($key, 10, 5);
+    expect($cache->get($key))->toEqual(10);
+
+    $cache->increment($key, 5);
+    expect($cache->get($key))->toEqual(15);
+
+    $cache->decrement($key, 5);
+    expect($cache->get($key))->toEqual(10);
 });
 
 it("#6 can remove an item from the cache", function () {
-    Cache::store("redis")->put("delete_key", "delete_value", 60);
-    Cache::store("redis")->forget("delete_key");
-    expect(Cache::store("redis")->get("delete_key"))->toBeNull();
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    expect($cache->get($key))->toBe("value");
+
+    $cache->forget($key);
+    expect($cache->get($key))->toBeNull();
 });
 
 it("#7 can flush all items from the cache", function () {
-    Cache::store("redis")->putMany(["key1" => "value1", "key2" => "value2"], 60);
-    Cache::store("redis")->flush();
-    expect(Cache::store("redis")->get("key1"))->toBeNull();
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->putMany([$key . "_1" => "value_1", $key . "_2" => "value_2"], 5);
+    $cache->flush();
+
+    expect($cache->get($key . "_1"))->toBeNull();
+    expect($cache->get($key . "_2"))->toBeNull();
 });
 
 it("#8 can handle distributed locking", function () {
-    $lock = Cache::store("redis")->lock("my_lock", 10);
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $lock = $cache->lock($key, 5);
     try {
         if ($lock->get()) {
             sleep(2);
@@ -60,202 +92,195 @@ it("#8 can handle distributed locking", function () {
         $this->fail($e->getMessage());
     }
 
-    $newLock = Cache::store("redis")->lock("my_lock", 10);
+    $newLock = $cache->lock($key, 5);
     expect($newLock->get())->toBeTrue();
+
     $newLock->release();
 });
 
 it("#9 can store and invalidate tagged items", function () {
-    $cache = Cache::store("redis")->tags(["tag1"]);
+    $cache = $this->cache();
+    $key = $this->key();
 
-    $cache->put("tagged_key_1", "tagged_value_1", 60);
+    $cache->tags(["tag_1"])->put("{$key}_1", "value_1", 5);
+    $cache->tags(["tag_2"])->put("{$key}_2", "value_2", 5);
 
-    $cache = Cache::store("redis")->tags(["tag2"]);
+    expect($cache->tags(["tag_1"])->get("{$key}_1"))->toBe("value_1");
+    expect($cache->tags(["tag_2"])->get("{$key}_2"))->toBe("value_2");
 
-    $cache->put("tagged_key_2", "tagged_value_2", 60);
-
-    expect(Cache::store("redis")->tags(["tag1"])->get("tagged_key_1"))->toBe("tagged_value_1");
-
-    expect(Cache::store("redis")->tags(["tag2"])->get("tagged_key_2"))->toBe("tagged_value_2");
-
-    // Invalidate tag1
-    Cache::store("redis")->tags(["tag1"])->flush();
-
-    expect(Cache::store("redis")->tags(["tag1"])->get("tagged_key_1"))->toBeNull();
-
-    expect(Cache::store("redis")->tags(["tag2"])->get("tagged_key_2"))->toBe("tagged_value_2");
+    $cache->tags(["tag_1"])->flush();
+    expect($cache->tags(["tag_1"])->get("{$key}_1"))->toBeNull();
+    expect($cache->tags(["tag_2"])->get("{$key}_2"))->toBe("value_2");
 });
 
 it("#10 can add an item only if it doesn't exist", function () {
-    // Add a new key
-    $added = Cache::store("redis")->add("add_key", "add_value", 60);
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Ensure it was added
+    $added = $cache->add($key, "value", 5);
     expect($added)->toBeTrue();
 
-    // Try adding again (should fail since it already exists)
-    $addedAgain = Cache::store("redis")->add("add_key", "new_value", 60);
-
-    // Ensure it wasn't added again
-    expect($addedAgain)->toBeFalse();
+    $reAdded = $cache->add($key, "value_new", 5);
+    expect($reAdded)->toBeFalse();
 });
 
 it("#11 can pull an item from the cache", function () {
-    // Store a value
-    Cache::store("redis")->put("pull_key", "pull_value", 60);
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Pull (retrieve and delete) the value
-    $pulledValue = Cache::store("redis")->pull("pull_key");
+    $cache->put($key, "value", 5);
+    $pulled = $cache->pull($key);
 
-    // Ensure it"s retrieved correctly
-    expect($pulledValue)->toBe("pull_value");
-
-    // Ensure it"s deleted after pulling
-    expect(Cache::store("redis")->get("pull_key"))->toBeNull();
+    expect($pulled)->toBe("value");
+    expect($cache->get($key))->toBeNull();
 });
 
 it("#12 can remember and remember forever", function () {
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Remember: Retrieve or store value for a TTL
-    $rememberedValue = Cache::store("redis")->remember(
-        "remember_key",
-        60,
-        fn() => "remembered_value"
-    );
-
-    // Check remembered value
+    $rememberedValue = $cache->remember("{$key}_ttl", 5, fn() => "remembered_value");
     expect($rememberedValue)->toBe("remembered_value");
+    expect($cache->remember("{$key}_ttl", 5, fn() => "remembered_value_2"))->toBe("remembered_value");
 
-    // Remember Forever: Retrieve or store value indefinitely
-    $rememberedForeverValue = Cache::store("redis")->rememberForever(
-        "remember_forever_key",
-        fn() => "forever_value"
-    );
-
-    // Check remembered forever value
+    $rememberedForeverValue = $cache->rememberForever("{$key}_forever", fn() => "forever_value");
     expect($rememberedForeverValue)->toBe("forever_value");
+    expect($cache->rememberForever("{$key}_forever", fn() => "forever_value_2"))->toBe("forever_value");
+
+    $cache->forget("{$key}_forever");
+    expect($cache->has("{$key}_forever"))->toBeFalse();
 });
 
 it("#13 can store and invalidate an item with a single tag", function () {
-    // Store an item with a single tag
-    Cache::store("redis")->tags(["tag1"])->put("single_tag_item", "value1", 60);
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Retrieve the item
-    expect(Cache::store("redis")->tags(["tag1"])->get("single_tag_item"))->toBe("value1");
+    $cache->tags(["tag_1"])->put($key, "value", 5);
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
 
-    // Invalidate the tag
-    Cache::store("redis")->tags(["tag1"])->flush();
-
-    // Ensure the item is invalidated
-    expect(Cache::store("redis")->tags(["tag1"])->get("single_tag_item"))->toBeNull();
+    $cache->tags(["tag_1"])->flush();
+    expect($cache->tags(["tag_1"])->get($key))->toBeNull();
 });
 
 it("#14 can store and invalidate an item with multiple tags", function () {
-    // Store an item with multiple tags
-    Cache::store("redis")->tags(["tag1", "tag2"])->put("multi_tag_item", "value2", 60);
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Retrieve the item
-    expect(Cache::store("redis")->tags(["tag1"])->get("multi_tag_item"))->toBe("value2");
-    expect(Cache::store("redis")->tags(["tag2"])->get("multi_tag_item"))->toBe("value2");
+    $cache->tags(["tag_1", "tag_2"])->put($key, "value", 5);
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+    expect($cache->tags(["tag_2"])->get($key))->toBe("value");
 
-    // Invalidate one tag (should remove the item)
-    Cache::store("redis")->tags(["tag1"])->flush();
-
-    // Ensure the item is not available under "tag2"
-    expect(Cache::store("redis")->tags(["tag2"])->get("multi_tag_item"))->toBeNull();
-
-    // Invalidate the second tag
-    Cache::store("redis")->tags(["tag2"])->flush();
-
-    // Ensure the item is now fully invalidated
-    expect(Cache::store("redis")->tags(["tag2"])->get("multi_tag_item"))->toBeNull();
+    $cache->tags(["tag_1"])->flush();
+    expect($cache->tags(["tag_1"])->get($key))->toBeNull();
+    expect($cache->tags(["tag_2"])->get($key))->toBeNull();
 });
 
 it("#15 can store multiple items with shared tags and invalidate them", function () {
-    $store = Cache::store("redis");
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Store two items with shared tags
-    $store->tags(["shared_tag"])->putMany([
-        "item1" => "value1",
-        "item2" => "value2",
-    ], 60);
+    $cache->tags(["shared_tag"])->putMany([
+        "{$key}_1" => "value_1",
+        "{$key}_2" => "value_2",
+    ], 5);
 
-    // Retrieve both items
-    expect($store->tags(["shared_tag"])->get("item1"))->toBe("value1");
-    expect($store->tags(["shared_tag"])->get("item2"))->toBe("value2");
+    expect($cache->tags(["shared_tag"])->get("{$key}_1"))->toBe("value_1");
+    expect($cache->tags(["shared_tag"])->get("{$key}_2"))->toBe("value_2");
 
-    // Invalidate the shared tag
-    $store->tags(["shared_tag"])->flush();
-
-    // Ensure both items are invalidated
-    expect($store->tags(["shared_tag"])->get("item1"))->toBeNull();
-    expect($store->tags(["shared_tag"])->get("item2"))->toBeNull();
+    $cache->tags(["shared_tag"])->flush();
+    expect($cache->tags(["shared_tag"])->get("{$key}_1"))->toBeNull();
+    expect($cache->tags(["shared_tag"])->get("{$key}_2"))->toBeNull();
 });
 
 it("#16 can invalidate multiple tags at once", function () {
-    $store = Cache::store("redis");
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Store items with different tags
-    $store->tags(["tagA"])->putMany([
-        "itemA" => "valueA",
-        "itemB" => "valueB",
-    ], 60);
+    $cache->tags(["tag_1"])->putMany([
+        "{$key}_1" => "value_1",
+        "{$key}_2" => "value_2",
+    ], 5);
 
-    $store->tags(["tagB"])->putMany([
-        "itemC" => "valueC",
-        "itemD" => "valueD",
-    ], 60);
+    $cache->tags(["tag_2"])->putMany([
+        "{$key}_3" => "value_3",
+        "{$key}_4" => "value_4",
+    ], 5);
 
-    // Retrieve all items
-    expect($store->tags(["tagA"])->many(["itemA", "itemB"]))->toBe([
-        "itemA" => "valueA",
-        "itemB" => "valueB",
+    expect($cache->tags(["tag_1"])->many(["{$key}_1", "{$key}_2"]))->toBe([
+        "{$key}_1" => "value_1",
+        "{$key}_2" => "value_2",
     ]);
 
-    expect($store->tags(["tagB"])->many(["itemC", "itemD"]))->toBe([
-        "itemC" => "valueC",
-        "itemD" => "valueD",
+    expect($cache->tags(["tag_2"])->many(["{$key}_3", "{$key}_4"]))->toBe([
+        "{$key}_3" => "value_3",
+        "{$key}_4" => "value_4",
     ]);
 
-    // Invalidate both tags at once
-    $store->tags(["tagA", "tagB"])->flush();
+    $cache->tags(["tag_1", "tag_2"])->flush();
 
-    // Ensure all items are invalidated
-    expect($store->tags(["tagA"])->many(["itemA", "itemB"]))->toBe([
-        "itemA" => null,
-        "itemB" => null,
+    expect($cache->tags(["tag_1"])->many(["{$key}_1", "{$key}_2"]))->toBe([
+        "{$key}_1" => null,
+        "{$key}_2" => null,
     ]);
 
-    expect($store->tags(["tagB"])->many(["itemC", "itemD"]))->toBe([
-        "itemC" => null,
-        "itemD" => null,
+    expect($cache->tags(["tag_2"])->many(["{$key}_3", "{$key}_4"]))->toBe([
+        "{$key}_3" => null,
+        "{$key}_4" => null,
     ]);
 });
 
-it("#17 can handle retrieving tagged items in different order", function () {
-    $store = Cache::store("redis");
+it("#17 can handle retrieving items in different tag orders", function () {
+    $cache = $this->cache();
+    $key = $this->key();
 
-    // Store an item with two tags
-    $store->tags(["t-17", "t-171"])->put("diff_value", "value", 60);
+    $cache->tags(["tag_1", "tag_2"])->put($key, "value", 5);
 
-    // Make sure single tag is working
-    expect($store->tags(["t-171"])->get("diff_value"))->toBe("value");
-
-    // Make sure tag order doesn"t matter
-    expect($store->tags(["t-171", "t-17"])->get("diff_value"))->toBe("value");
-
-    // No value without tags
-    expect($store->get("diff_value"))->toBeNull();
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+    expect($cache->tags(["tag_2"])->get($key))->toBe("value");
+    expect($cache->tags(["tag_2", "tag_1"])->get($key))->toBe("value");
+    expect($cache->get($key))->toBe("value");
 });
 
-it("#18 can handle tagged namespaces", function () {
-    $store = Cache::store("redis");
+it("#18 can override keys while using different tag", function () {
+    $cache = $this->cache();
+    $key = $this->key();
 
-    $store->tags(["t-18-1"])->put("key", "t-18-1", 60);
-    $store->tags(["t-18-2"])->put("key", "t-18-2", 60);
-    $store->put("key", "t-18", 60);
+    $cache->tags(["tag_1"])->put($key, "value_1", 5);
+    expect($cache->get($key))->toBe("value_1");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value_1");
+    expect($cache->tags(["tag_2"])->get($key))->toBe("value_1");
 
-    expect($store->tags(["t-18-1"])->get("key"))->toBe("t-18-1");
-    expect($store->tags(["t-18-2"])->get("key"))->toBe("t-18-2");
-    expect($store->get("key"))->toBe("t-18");
+    $cache->tags(["tag_2"])->put($key, "value_2", 5);
+    expect($cache->get($key))->toBe("value_2");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value_2");
+    expect($cache->tags(["tag_2"])->get($key))->toBe("value_2");
+
+    $cache->put($key, "value_3", 5);
+    expect($cache->get($key))->toBe("value_3");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value_3");
+    expect($cache->tags(["tag_2"])->get($key))->toBe("value_3");
+});
+
+it("#18 can prune stale tags with command", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["stale"])->put($key, "value", 1);
+
+    sleep(2);
+
+    expect($cache->get($key))->toBeNull();
+
+    $tagSet = $cache->tags(["stale"])->getTags();
+    $entries = $tagSet->entries()->all();
+
+    expect($entries)->toBe([
+        0 => $key->toString()
+    ]);
+
+    $exitCode = Artisan::call("cache:prune-stale-tags");
+    expect($exitCode)->toBe(0);
+
+    $newEntries = $tagSet->entries()->all();
+    expect($newEntries)->toBe([]);
 });
