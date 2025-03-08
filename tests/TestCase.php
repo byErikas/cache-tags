@@ -2,9 +2,9 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Cache;
-use \Illuminate\Contracts\Cache\Repository;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Str;
 
 abstract class TestCase extends BaseTestCase
