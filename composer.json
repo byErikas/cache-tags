@@ -17,7 +17,7 @@
         "illuminate/support": "^10|^11"
     },
     "require-dev": {
-        "laravel/framework": "^10|^11",
+        "orchestra/testbench": "^8.0",
         "pestphp/pest": "^3.5"
     },
     "autoload": {
