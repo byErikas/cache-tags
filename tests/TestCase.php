@@ -24,6 +24,11 @@ abstract class TestCase extends BaseTestCase
             ]); 
         });
     }
+
+    protected function getPackageProviders($app)
+    {
+		return ["ByErikas\CacheTags\ServiceProvider"];
+	}
     
     protected function cache(): CacheRepository
     {
