@@ -5,13 +5,8 @@ namespace ByErikas\CacheTags\Cache\Traits;
 use Closure;
 use Illuminate\Cache\Events\CacheHit;
 use Illuminate\Cache\Events\CacheMissed;
-use Illuminate\Cache\Events\ForgettingKey;
-use Illuminate\Cache\Events\KeyForgetFailed;
 use Illuminate\Cache\Events\KeyForgotten;
-use Illuminate\Cache\Events\KeyWriteFailed;
 use Illuminate\Cache\Events\KeyWritten;
-use Illuminate\Cache\Events\RetrievingKey;
-use Illuminate\Cache\Events\WritingKey;
 
 /**
  * Cache method overrides
@@ -36,15 +31,14 @@ trait MethodOverrides
 
         $tagNames = $this->tags->getNames();
 
-        $this->event(new RetrievingKey($this->getName(), $key, $tagNames));
         $value = $this->store->get($key);
 
         if (!is_null($value)) {
-            $this->event(new CacheHit($this->getName(), $key, $value, $tagNames));
+            $this->event(new CacheHit($key, $value, $tagNames));
             return $value;
         }
 
-        $this->event(new CacheMissed($this->getName(), $key, $tagNames));
+        $this->event(new CacheMissed($key, $tagNames));
         return value($default);
     }
 
@@ -108,14 +102,10 @@ trait MethodOverrides
             return $this->forget($key);
         }
 
-        $this->event(new WritingKey($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
-
         $result = $this->store->put($key, $value, $seconds);
 
         if ($result) {
-            $this->event(new KeyWritten($this->getName(), $key, $value, $seconds), $this->tags->getNames());
-        } else {
-            $this->event(new KeyWriteFailed($this->getName(), $key, $value, $seconds, $this->tags->getNames()));
+            $this->event(new KeyWritten($key, $value, $seconds), $this->tags->getNames());
         }
 
         return $result;
@@ -133,14 +123,10 @@ trait MethodOverrides
         /**@disregard P1013 */
         $this->tags->addEntry($key);
 
-        $this->event(new WritingKey($this->getName(), $key, $value, null, $this->tags->getNames()));
-
         $result = $this->store->forever($key, $value);
 
         if ($result) {
-            $this->event(new KeyWritten($this->getName(), $key, $value, null, $this->tags->getNames()));
-        } else {
-            $this->event(new KeyWriteFailed($this->getName(), $key, $value, null, $this->tags->getNames()));
+            $this->event(new KeyWritten($key, $value, null, $this->tags->getNames()));
         }
 
         return $result;
@@ -228,13 +214,10 @@ trait MethodOverrides
     public function forget($key)
     {
         $tags = $this->tags->getNames();
-        $this->event(new ForgettingKey($this->getName(), $key));
 
         return tap($this->store->forget($key), function ($result) use ($key, $tags) {
             if ($result) {
-                $this->event(new KeyForgotten($this->getName(), $key, $tags));
-            } else {
-                $this->event(new KeyForgetFailed($this->getName(), $key, $tags));
+                $this->event(new KeyForgotten($key, $tags));
             }
         });
     }
