@@ -8,16 +8,12 @@
         "redis",
         "tags"
     ],
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": "MIT",
     "require": {
-        "php": "^8.0",
-        "illuminate/cache": "^10|^11",
-        "illuminate/redis": "^10|^11",
-        "illuminate/support": "^10|^11"
+        "laravel/framework": "^11"
     },
     "require-dev": {
-        "laravel/framework": "^10|^11",
         "pestphp/pest": "^3.5"
     },
     "autoload": {
@@ -42,9 +38,6 @@
             "providers": [
                 "ByErikas\\CacheTags\\ServiceProvider"
             ]
-        },
-        "branch-alias": {
-            "dev-main": "1.0.x-dev"
         }
     },
     "config": {
