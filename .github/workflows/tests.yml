@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+      - v*.*.*
 
 jobs:
   test:
@@ -49,30 +50,31 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: redis
-          coverage: none
 
       - name: Get composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-      - name: Cache composer
+      - name: Composer Cache 
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ matrix.os }}-composer-${{ matrix.php }}-${{ matrix.dependency-version }}-${{ hashFiles('composer.json') }}
 
-      - name: Install dependencies
+      - name: Composer Install
         run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+
+     # Step to modify the redis driver to redis-tags in the cache.php config
+      - name: Modify cache.php to Use Related Driver
+        run: |
+          sed -i "s/'driver' => 'redis'/'driver' => 'redis-tags'/g" config/cache.php
 
       - name: Make .env
         run: |
+          php artisan key:generate
           echo "REDIS_HOST=localhost" >> .env
           echo "REDIS_PORT=6379" >> .env
+          php artisan optimize
 
-      - name: Execute tests on Ubuntu OS
-        if: matrix.os == 'ubuntu-latest'
-        run: XDEBUG_MODE=coverage vendor/bin/pest
-
-      - name: Execute tests on Windows OS
-        if: matrix.os == 'windows-latest'
+      - name: Run Tests
         run: vendor/bin/pest
