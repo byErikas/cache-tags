@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer.outputs.dir }}
-          key: ${{ matrix.os }}-composer-${{ matrix.php }}-${{ matrix.dependency-version }}-${{ hashFiles("composer.json") }}
+          key: ${{ matrix.os }}-composer-${{ matrix.php }}-${{ matrix.dependency-version }}-${{ hashFiles('composer.json') }}
 
       - name: Composer Update
         run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
