@@ -14,7 +14,8 @@
         "laravel/framework": "^12"
     },
     "require-dev": {
-        "pestphp/pest": "^3.5"
+        "orchestra/testbench": "^10",
+        "pestphp/pest": "^3"
     },
     "autoload": {
         "psr-4": {
