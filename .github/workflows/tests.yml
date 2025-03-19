@@ -1,0 +1,79 @@
+name: tests
+
+on:   
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The branch, tag or SHA to checkout"     
+        required: true
+        default: "main"
+  pull_request:
+    branches:
+      - main
+      - v*.*.*
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.4, 7.4]
+        dependency-version: [prefer-lowest, prefer-stable]
+    services:
+      redis:
+        image: bitnami/valkey:8.0.2
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+        env:
+          ALLOW_EMPTY_PASSWORD: "yes"
+
+    name: PHP${{ matrix.php }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: redis
+          coverage: xdebug
+
+      - name: Get Composer Cache Directory
+        id: composer
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Composer Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer.outputs.dir }}
+          key: ${{ matrix.os }}-composer-${{ matrix.php }}-${{ matrix.dependency-version }}-${{ hashFiles("composer.json") }}
+
+      - name: Composer Update
+        run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+
+      - name: Make .env
+        run: |
+          echo "REDIS_HOST=localhost" >> .env
+          echo "REDIS_PORT=6379" >> .env
+
+      - name: Tests on Ubuntu OS
+        if: matrix.os == "ubuntu-latest"
+        run: XDEBUG_MODE=coverage vendor/bin/pest
+
+      - name: Tests on Windows OS
+        if: matrix.os == "windows-latest"
+        run: vendor/bin/pest
