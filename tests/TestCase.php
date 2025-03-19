@@ -2,21 +2,41 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Cache;
-use \Illuminate\Contracts\Cache\Repository;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Support\Str;
+use Ramsey\Uuid\UuidInterface;
 
 abstract class TestCase extends BaseTestCase
 {
-    protected Repository $cache;
+    protected CacheRepository $cache;
 
-    protected function cache(): Repository
+    protected function defineEnvironment($app)
+    {
+        // Setup cache store to use redis-tags driver
+        tap($app["config"], function (ConfigRepository $config) {
+            $config->set("cache.default", "redis");
+            $config->set("cache.stores.redis", [
+                "driver"   => "redis-tags",
+                "connection" => "default",
+                "lock_connection" => "default",
+            ]);
+        });
+    }
+
+    protected function getPackageProviders($app)
+    {
+        return ["ByErikas\CacheTags\ServiceProvider"];
+    }
+
+    protected function cache(): CacheRepository
     {
         return Cache::store("redis");
     }
 
-    protected function key()
+    protected function key(): UuidInterface
     {
         return Str::uuid();
     }
