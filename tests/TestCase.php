@@ -15,7 +15,7 @@ abstract class TestCase extends BaseTestCase
 
     protected function defineEnvironment($app)
     {
-        // Setup cache store to use redis-tags driver
+        /** Setup cache store to use redis-tags driver */
         tap($app["config"], function (ConfigRepository $config) {
             $config->set("cache.default", "redis");
             $config->set("cache.stores.redis", [
