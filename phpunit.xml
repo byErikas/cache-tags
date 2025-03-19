@@ -4,10 +4,6 @@
     bootstrap="vendor/autoload.php"
     colors="true"
 >
-    <php>
-        <env name="RAY_ENABLED" value="(false)" />
-    </php>
-
     <testsuites>
         <testsuite name="Test Suite">
             <directory suffix="Test.php">./tests</directory>
