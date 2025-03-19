@@ -14,7 +14,7 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function register()
     {
-        $this->app->booting(function () {
+        $this->app->afterResolving("cache", function () {
             Cache::extend("redis-tags", function (Application $app) {
                 return Cache::repository(new Store($app["redis"], $app["config"]["cache.prefix"], $app["config"]["cache.stores.redis"]["connection"]));
             });
