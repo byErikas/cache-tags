@@ -71,9 +71,9 @@ jobs:
           echo "REDIS_PORT=6379" >> .env
 
       - name: Tests on Ubuntu OS
-        if: matrix.os == "ubuntu-latest"
+        if: matrix.os == 'ubuntu-latest'
         run: XDEBUG_MODE=coverage vendor/bin/pest
 
       - name: Tests on Windows OS
-        if: matrix.os == "windows-latest"
+        if: matrix.os == 'windows-latest'
         run: vendor/bin/pest
