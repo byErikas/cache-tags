@@ -376,3 +376,18 @@ it("#26 can put with negative ttl", function () {
     $cache->tags(["tag_1"])->put($key, "value", -1);
     expect($cache->tags(["tag_1"])->get($key))->toBeNull();
 });
+
+it("#27 can't add with negative ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, "value", -1))->toBeFalse();
+});
+
+it("#28 can't add already added item", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, "value"))->toBeTrue();
+    expect($cache->tags(["tag_1"])->add($key, "value"))->toBeFalse();
+});
