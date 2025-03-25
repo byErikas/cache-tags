@@ -74,7 +74,7 @@ trait MethodOverrides
     /**
      * Store an item in the cache.
      *
-     * @param  array|string  $key
+     * @param  string  $key
      * @param  mixed  $value
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
      * @return bool
@@ -92,10 +92,6 @@ trait MethodOverrides
              * @disregard P1013 - @var \TagSet
              */
             $this->tags->addEntry($key, $seconds);
-        }
-
-        if (is_array($key)) {
-            return $this->putMany($key, $value);
         }
 
         if ($seconds <= 0) {

@@ -289,12 +289,33 @@ it("#19 can put and get many items", function () {
     $cache = $this->cache();
     $key = $this->key();
 
-    $cache->tags(["stale"])->put(["{$key}_1", "{$key}_2"], "value", 5);
+    $cache->tags(["tag_1"])->putMany(["{$key}_1" => "value", "{$key}_2" => "value"], 5);
 
-    sleep(2);
-
-    expect($cache->get(["{$key}_1", "{$key}_2"]))->toBe([
+    expect($cache->tags(["tag_1"])->get(["{$key}_1", "{$key}_2"]))->toBe([
         "{$key}_1" => "value",
         "{$key}_2" => "value"
     ]);
+});
+
+it("#20 can put forever", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->forever($key, "value");
+
+    expect($cache->tags(["tag_1"]))->get($key)->toBe("value");
+});
+
+
+it("#21 can remember", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->remember($key, 5, function () {
+        return "value";
+    });
+
+    expect($cache->tags(["tag_1"]))->remember($key, 5, function () {
+        return "value";
+    })->toBe("value");
 });
