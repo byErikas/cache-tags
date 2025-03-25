@@ -303,7 +303,7 @@ it("#20 can put forever", function () {
 
     $cache->tags(["tag_1"])->forever($key, "value");
 
-    expect($cache->tags(["tag_1"]))->get($key)->toBe("value");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
 });
 
 
@@ -315,9 +315,9 @@ it("#21 can remember", function () {
         return "value";
     });
 
-    expect($cache->tags(["tag_1"]))->remember($key, 5, function () {
+    expect($cache->tags(["tag_1"])->remember($key, 5, function () {
         return "value";
-    })->toBe("value");
+    }))->toBe("value");
 });
 
 it("#22 can remember forever", function () {
@@ -328,9 +328,9 @@ it("#22 can remember forever", function () {
         return "value";
     });
 
-    expect($cache->tags(["tag_1"]))->rememberForever($key, 5, function () {
+    expect($cache->tags(["tag_1"])->rememberForever($key, 5, function () {
         return "value";
-    })->toBe("value");
+    }))->toBe("value");
 });
 
 it("#23 can increment and decrement", function () {
@@ -340,10 +340,10 @@ it("#23 can increment and decrement", function () {
     $cache->tags(["tag_1"])->add($key, 1, 10);
 
     $cache->tags(["tag_1"])->increment($key, 1);
-    expect($cache->tags(["tag_1"]))->get($key)->toBe(2);
+    expect($cache->tags(["tag_1"])->get($key))->toBe(2);
 
     $cache->tags(["tag_1"])->decrement($key, 1);
-    expect($cache->tags(["tag_1"]))->get($key)->toBe(1);
+    expect($cache->tags(["tag_1"])->get($key))->toBe(1);
 });
 
 it("#23 can forget", function () {
@@ -352,8 +352,8 @@ it("#23 can forget", function () {
 
     $cache->tags(["tag_1"])->add($key, 1, 10);
 
-    expect($cache->tags(["tag_1"]))->get($key)->toBe(1);
+    expect($cache->tags(["tag_1"])->get($key))->toBe(1);
 
     $cache->tags(["tag_1"])->forget($key);
-    expect($cache->tags(["tag_1"]))->has($key)->toBeFalse();
+    expect($cache->tags(["tag_1"])->has($key))->toBeFalse();
 });
