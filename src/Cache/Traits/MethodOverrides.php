@@ -82,7 +82,7 @@ trait MethodOverrides
     public function put($key, $value, $ttl = null)
     {
         if (is_null($ttl)) {
-            return $this->forever($key, $value, true);
+            return $this->forever($key, $value);
         }
 
         $seconds = $this->getSeconds($ttl);
@@ -97,12 +97,6 @@ trait MethodOverrides
         if (is_array($key)) {
             return $this->putMany($key, $value);
         }
-
-        if ($ttl === null) {
-            return $this->forever($key, $value, true);
-        }
-
-        $seconds = $this->getSeconds($ttl);
 
         if ($seconds <= 0) {
             return $this->forget($key);

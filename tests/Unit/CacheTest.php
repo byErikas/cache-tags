@@ -284,3 +284,17 @@ it("#18 can prune stale tags with command", function () {
     $newEntries = $tagSet->entries()->all();
     expect($newEntries)->toBe([]);
 });
+
+it("#19 can put and get many items", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["stale"])->put(["{$key}_1", "{$key}_2"], "value", 5);
+
+    sleep(2);
+
+    expect($cache->get(["{$key}_1", "{$key}_2"]))->toBe([
+        "{$key}_1" => "value",
+        "{$key}_2" => "value"
+    ]);
+});
