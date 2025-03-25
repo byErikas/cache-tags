@@ -72,7 +72,7 @@ jobs:
 
       - name: Tests on Ubuntu OS
         if: matrix.os == 'ubuntu-latest'
-        run: XDEBUG_MODE=coverage vendor/bin/pest
+        run: XDEBUG_MODE=coverage vendor/bin/pest --coverage
 
       - name: Tests on Windows OS
         if: matrix.os == 'windows-latest'
