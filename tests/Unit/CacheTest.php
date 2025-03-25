@@ -307,7 +307,7 @@ it("#20 can put forever", function () {
 });
 
 
-it("#21 can remember", function () {
+it("#21 can remember tagged", function () {
     $cache = $this->cache();
     $key = $this->key();
 
@@ -320,7 +320,7 @@ it("#21 can remember", function () {
     }))->toBe("value");
 });
 
-it("#22 can remember forever", function () {
+it("#22 can remember forever tagged", function () {
     $cache = $this->cache();
     $key = $this->key();
 
@@ -333,7 +333,7 @@ it("#22 can remember forever", function () {
     }))->toBe("value");
 });
 
-it("#23 can increment and decrement", function () {
+it("#23 can increment and decrement tagged", function () {
     $cache = $this->cache();
     $key = $this->key();
 
@@ -347,13 +347,32 @@ it("#23 can increment and decrement", function () {
     expect($cache->tags(["tag_1"])->get($key))->toBe("0");
 });
 
-it("#24 can forget", function () {
+it("#24 can forget tagged", function () {
     $cache = $this->cache();
     $key = $this->key();
 
-    $added = $cache->tags(["tag_1"])->add($key, "value", 10);
+    expect($cache->tags(["tag_1"])->add($key, "value", 10))->toBeTrue();
     expect($cache->tags(["tag_1"])->get($key))->toBe("value");
 
     $cache->tags(["tag_1"])->forget($key);
     expect($cache->tags(["tag_1"])->has($key))->toBeFalse();
+});
+
+it("#25 can put with no ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->put($key, "value");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+});
+
+it("#26 can put with negative ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->put($key, "value");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+
+    $cache->tags(["tag_1"])->put($key, "value", -1);
+    expect($cache->tags(["tag_1"])->get($key))->toBeNull();
 });
