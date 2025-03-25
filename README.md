@@ -1,7 +1,8 @@
 <h1 align="center">Laravel Redis/Valkey Cache Tags</h1>
 
 <p align="center">
-  <a href="https://github.com/byErikas/cache-tags/actions/workflows/tests.yml"><img src="https://github.com/byErikas/cache-tags/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/byErikas/cache-tags/actions"><img src="https://github.com/byErikas/cache-tags/actions/workflows/tests.yml/badge.svg" alt="tests Status"></a>
+  <a href="https://codecov.io/gh/byErikas/cache-tags"><img src="https://codecov.io/gh/byErikas/cache-tags/graph/badge.svg?token=Y7F8CZFISH"/></a>
   <a href="https://packagist.org/packages/byerikas/cache-tags"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FbyErikas%2Fcache-tags%2Frefs%2Fheads%2Fmain%2Fcomposer.json&query=%24.version&prefix=v&label=packagist&color=blue" alt="Latest Stable Version"></a>
   <a href="https://github.com/byErikas/cache-tags/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-93c10b" alt="License"></a>
 </p>
