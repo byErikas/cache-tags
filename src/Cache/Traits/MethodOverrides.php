@@ -66,9 +66,28 @@ trait MethodOverrides
             if ($seconds > 0) {
                 $this->tags->addEntry($key, $seconds);
             }
+
+            if ($seconds <= 0) {
+                return false;
+            }
+
+
+            // If the store has an "add" method we will call the method on the store so it
+            // has a chance to override this logic. Some drivers better support the way
+            // this operation should work with a total "atomic" implementation of it.
+            if (method_exists($this->store, 'add')) {
+                return $this->store->add($key, $value, $seconds);
+            }
         }
 
-        return parent::add($key, $value, $ttl);
+        // If the value did not exist in the cache, we will put the value in the cache
+        // so it exists for subsequent requests. Then, we will return true so it is
+        // easy to know if the value gets added. Otherwise, we will return false.
+        if (is_null($this->get($key))) {
+            return $this->put($key, $value, $seconds);
+        }
+
+        return false;
     }
 
     /**
