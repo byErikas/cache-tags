@@ -72,8 +72,13 @@ jobs:
 
       - name: Tests on Ubuntu OS
         if: matrix.os == 'ubuntu-latest'
-        run: XDEBUG_MODE=coverage vendor/bin/pest
+        run: XDEBUG_MODE=coverage vendor/bin/pest --coverage --coverage-clover coverage.xml
 
       - name: Tests on Windows OS
         if: matrix.os == 'windows-latest'
-        run: vendor/bin/pest
+        run: vendor/bin/pest --coverage --coverage-clover coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
