@@ -319,3 +319,41 @@ it("#21 can remember", function () {
         return "value";
     })->toBe("value");
 });
+
+it("#22 can remember forever", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->rememberForever($key, 5, function () {
+        return "value";
+    });
+
+    expect($cache->tags(["tag_1"]))->rememberForever($key, 5, function () {
+        return "value";
+    })->toBe("value");
+});
+
+it("#23 can increment and decrement", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->add($key, 1, 10);
+
+    $cache->tags(["tag_1"])->increment($key, 1);
+    expect($cache->tags(["tag_1"]))->get($key)->toBe(2);
+
+    $cache->tags(["tag_1"])->decrement($key, 1);
+    expect($cache->tags(["tag_1"]))->get($key)->toBe(1);
+});
+
+it("#23 can forget", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->add($key, 1, 10);
+
+    expect($cache->tags(["tag_1"]))->get($key)->toBe(1);
+
+    $cache->tags(["tag_1"])->forget($key);
+    expect($cache->tags(["tag_1"]))->has($key)->toBeFalse();
+});
