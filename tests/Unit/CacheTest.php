@@ -284,3 +284,110 @@ it("#18 can prune stale tags with command", function () {
     $newEntries = $tagSet->entries()->all();
     expect($newEntries)->toBe([]);
 });
+
+it("#19 can put and get many items", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->putMany(["{$key}_1" => "value", "{$key}_2" => "value"], 5);
+
+    expect($cache->tags(["tag_1"])->get(["{$key}_1", "{$key}_2"]))->toBe([
+        "{$key}_1" => "value",
+        "{$key}_2" => "value"
+    ]);
+});
+
+it("#20 can put forever", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->forever($key, "value");
+
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+});
+
+
+it("#21 can remember tagged", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->remember($key, 5, function () {
+        return "value";
+    });
+
+    expect($cache->tags(["tag_1"])->remember($key, 5, function () {
+        return "value";
+    }))->toBe("value");
+});
+
+it("#22 can remember forever tagged", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->rememberForever($key, function () {
+        return "value";
+    });
+
+    expect($cache->tags(["tag_1"])->rememberForever($key, function () {
+        return "value";
+    }))->toBe("value");
+});
+
+it("#23 can increment and decrement tagged", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, 0, 10))->toBeTrue();
+    expect($cache->tags(["tag_1"])->has($key))->toBeTrue();
+
+    $cache->tags(["tag_1"])->increment($key, 1);
+    expect($cache->tags(["tag_1"])->get($key))->toBe("1");
+
+    $cache->tags(["tag_1"])->decrement($key, 1);
+    expect($cache->tags(["tag_1"])->get($key))->toBe("0");
+});
+
+it("#24 can forget tagged", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, "value", 10))->toBeTrue();
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+
+    $cache->tags(["tag_1"])->forget($key);
+    expect($cache->tags(["tag_1"])->has($key))->toBeFalse();
+});
+
+it("#25 can put with no ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->put($key, "value");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+});
+
+it("#26 can put with negative ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    $cache->tags(["tag_1"])->put($key, "value");
+    expect($cache->tags(["tag_1"])->get($key))->toBe("value");
+
+    $cache->tags(["tag_1"])->put($key, "value", -1);
+    expect($cache->tags(["tag_1"])->get($key))->toBeNull();
+});
+
+it("#27 can't add with negative ttl", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, "value", -1))->toBeFalse();
+});
+
+it("#28 can't add already added item", function () {
+    $cache = $this->cache();
+    $key = $this->key();
+
+    expect($cache->tags(["tag_1"])->add($key, "value"))->toBeTrue();
+    expect($cache->tags(["tag_1"])->add($key, "value"))->toBeFalse();
+});
