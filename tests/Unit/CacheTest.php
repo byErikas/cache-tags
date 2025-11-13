@@ -391,3 +391,31 @@ it("#28 can't add already added item", function () {
     expect($cache->tags(["tag_1"])->add($key, "value"))->toBeTrue();
     expect($cache->tags(["tag_1"])->add($key, "value"))->toBeFalse();
 });
+
+it("#29 can store and retrieve an item from the cache (different store)", function () {
+    $cache = $this->cache("redis2");
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    $value = $cache->get($key);
+
+    expect($value)->toBe("value");
+});
+
+it("#30 can check if an item exists in the cache (different store)", function () {
+    $cache = $this->cache("redis2");
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    expect($cache->has($key))->toBeTrue();
+    expect($cache->has($key . "_missing"))->toBeFalse();
+});
+
+it("#31 can check if an item is missing from the cache (different store)", function () {
+    $cache = $this->cache("redis2");
+    $key = $this->key();
+
+    $cache->put($key, "value", 5);
+    expect($cache->missing($key))->toBeFalse();
+    expect($cache->missing($key . "_missing"))->toBeTrue();
+});
