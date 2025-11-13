@@ -18,7 +18,14 @@ abstract class TestCase extends BaseTestCase
         /** Setup cache store to use redis-tags driver */
         tap($app["config"], function (ConfigRepository $config) {
             $config->set("cache.default", "redis");
+
             $config->set("cache.stores.redis", [
+                "driver"   => "redis-tags",
+                "connection" => "default",
+                "lock_connection" => "default",
+            ]);
+
+            $config->set("cache.stores.redis2", [
                 "driver"   => "redis-tags",
                 "connection" => "default",
                 "lock_connection" => "default",
@@ -31,9 +38,9 @@ abstract class TestCase extends BaseTestCase
         return ["ByErikas\CacheTags\ServiceProvider"];
     }
 
-    protected function cache(): CacheRepository
+    protected function cache(string $store = "redis"): CacheRepository
     {
-        return Cache::store("redis");
+        return Cache::store($store);
     }
 
     protected function key(): UuidInterface
