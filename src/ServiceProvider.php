@@ -15,10 +15,10 @@ class ServiceProvider extends IlluminateServiceProvider
     public function register()
     {
         $this->app->afterResolving("cache", static function (Factory $factory) {
-            $factory->extend("redis-tags", function (Application $app) {
+            $factory->extend("redis-tags", function (Application $app, array $config) {
                 /** @var Factory $this */
 
-                return $this->repository(new Store($app["redis"], $app["config"]["cache.prefix"], $app["config"]["cache.stores.redis"]["connection"]));
+                return $this->repository(new Store($app["redis"], $app["config"]["cache.prefix"], $config['connection'] ?? $app["config"]["cache.stores.redis"]["connection"]));
             });
         });
     }
