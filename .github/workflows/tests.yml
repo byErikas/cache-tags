@@ -26,7 +26,7 @@ jobs:
         dependency-version: [prefer-lowest, prefer-stable]
     services:
       redis:
-        image: bitnami/valkey:8.0.2
+        image: bitnamilegacy/valkey:8.0.2
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -76,9 +76,10 @@ jobs:
 
       - name: Tests on Windows OS
         if: matrix.os == 'windows-latest'
-        run: vendor/bin/pest --coverage --coverage-clover coverage.xml
+        run: vendor/bin/pest
 
       - name: Upload coverage reports to Codecov
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

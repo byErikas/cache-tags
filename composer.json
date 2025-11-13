@@ -8,14 +8,14 @@
         "redis",
         "tags"
     ],
-    "version": "2.0.3",
+    "version": "2.0.4",
     "license": "MIT",
     "require": {
-        "laravel/framework": "^12"
+        "laravel/framework": "^12.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^10",
-        "pestphp/pest": "^3"
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0"
     },
     "autoload": {
         "psr-4": {
@@ -45,6 +45,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "audit": {
+            "block-insecure": false
         }
     }
 }
