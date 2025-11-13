@@ -26,7 +26,7 @@ jobs:
         dependency-version: [prefer-lowest, prefer-stable]
     services:
       redis:
-        image: bitnami/valkey:8.0.2
+        image: bitnamilegacy/valkey:8.0.2
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
