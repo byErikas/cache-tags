@@ -87,7 +87,7 @@ trait MethodOverrides
     /**
      * Store an item in the cache.
      *
-     * @param  array  $key
+     * @param  string  $key
      * @param  mixed  $value
      * @param  \DateTimeInterface|\DateInterval|int|null  $ttl
      * @return bool
