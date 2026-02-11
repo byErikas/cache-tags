@@ -53,10 +53,16 @@ class Store extends BaseStore
             $cursor = $defaultCursorValue;
 
             do {
-                [$cursor, $tagsChunk] = $connection->scan(
+                $scan = $connection->scan(
                     $cursor,
                     ["match" => $prefix . TagSet::TAG_PREFIX . "*", "count" => $chunkSize]
                 );
+
+                if ($scan === false || !is_array($scan)) {
+                    break;
+                }
+
+                [$cursor, $tagsChunk] = $scan;
 
                 if (! is_array($tagsChunk)) {
                     break;
