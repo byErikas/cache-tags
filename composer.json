@@ -11,7 +11,7 @@
     "version": "2.0.6",
     "license": "MIT",
     "require": {
-        "laravel/framework": "^12.40"
+        "laravel/framework": "^12.0"
     },
     "require-dev": {
         "orchestra/testbench": "^10.0",
