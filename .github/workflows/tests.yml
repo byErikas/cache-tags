@@ -19,7 +19,7 @@ jobs:
       packages: write
       contents: read
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         php: [8.4]
