@@ -48,11 +48,17 @@ class TagSet extends BaseTagSet
                 $cursor = $defaultCursorValue;
 
                 do {
-                    [$cursor, $entries] = $connection->zscan(
+                    $scan = $connection->zscan(
                         $this->store->getPrefix() . $tagKey,
                         $cursor,
                         ['match' =>  "*", 'count' => 1000]
                     );
+
+                    if ($scan === false || !is_array($scan)) {
+                        break;
+                    }
+
+                    [$cursor, $entries] = $scan;
 
                     if (! is_array($entries)) {
                         break;
