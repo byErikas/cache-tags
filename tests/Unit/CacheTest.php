@@ -143,9 +143,9 @@ it("#12 can remember and remember forever", function () {
     expect($rememberedValue)->toBe("remembered_value");
     expect($cache->remember("{$key}_ttl", 5, fn() => "remembered_value_2"))->toBe("remembered_value");
 
-    $rememberedForeverValue = $cache->rememberForever("{$key}_forever", fn() => "forever_value");
-    expect($rememberedForeverValue)->toBe("forever_value");
-    expect($cache->rememberForever("{$key}_forever", fn() => "forever_value_2"))->toBe("forever_value");
+    $rememberedForeverValue = $cache->rememberForever("{$key}_forever", fn() => collect([1, 2, 3]));
+    expect($rememberedForeverValue)->toEqual(collect([1, 2, 3]));
+    expect($cache->rememberForever("{$key}_forever", fn() => collect([1, 2, 3])))->toEqual(collect([1, 2, 3]));
 
     $cache->forget("{$key}_forever");
     expect($cache->has("{$key}_forever"))->toBeFalse();
