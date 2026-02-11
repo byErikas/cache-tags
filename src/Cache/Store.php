@@ -23,7 +23,9 @@ class Store extends BaseStore
      */
     public function forever($key, $value)
     {
-        return (bool) $this->connection()->set($this->prefix . $key, $this->serialize($value), "EX", Cache::DEFAULT_CACHE_TTL);
+        $connection = $this->connection();
+
+        return (bool) $this->connection()->set($this->prefix . $key, $this->connectionAwareSerialize($value, $connection), "EX", Cache::DEFAULT_CACHE_TTL);
     }
 
     /**
