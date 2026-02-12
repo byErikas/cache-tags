@@ -4,7 +4,7 @@
   <a href="https://github.com/byErikas/cache-tags/actions"><img src="https://github.com/byErikas/cache-tags/actions/workflows/tests.yml/badge.svg" alt="tests Status"></a>
   <a href="https://codecov.io/gh/byErikas/cache-tags"><img src="https://codecov.io/gh/byErikas/cache-tags/graph/badge.svg?token=Y7F8CZFISH"/></a>
   <a href="https://packagist.org/packages/byerikas/cache-tags"><img src="https://img.shields.io/packagist/v/byerikas/cache-tags" alt="Packagist Version"></a>
-  <a href="https://github.com/byErikas/cache-tags/blob/main/LICENSE"><img src="https://img.shields.io/github/license/byerikas/cache-tags" alt="GitHub License"></a>
+  <a href="https://github.com/byErikas/cache-tags/blob/v0.x.x/LICENSE"><img src="https://img.shields.io/github/license/byerikas/cache-tags" alt="GitHub License"></a>
 </p>
 
 Allows for Redis/Valkey cache flushing multiple tagged items by a single tag. 
@@ -49,5 +49,6 @@ composer require byerikas/cache-tags
 ```
 To use the new driver - edit your `config/cache.php` and under `stores.YOUR_STORE.driver` set the value to `redis-tags`, and run `php artisan optimize`.
 It's recommended to have a scheduled command that would prune your stale tags to clean up memory. The command is `php artisan cache:prune-stale-tags`, and should come with Laravel out of the box.
+
 
 To prevent any memory issues use Redis/Valkey `maxmemory-policy` of `volatile-*`.
