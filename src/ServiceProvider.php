@@ -17,8 +17,13 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->afterResolving("cache", static function (Factory $factory) {
             $factory->extend("redis-tags", function (Application $app, array $config) {
                 /** @var Factory $this */
+                $connection = $config['connection'] ?? $app["config"]["cache.stores.redis"]["connection"];
 
-                return $this->repository(new Store($app["redis"], $app["config"]["cache.prefix"], $config['connection'] ?? $app["config"]["cache.stores.redis"]["connection"]));
+                $store = new Store($app["redis"], $app["config"]["cache.prefix"], $connection);
+
+                $store->setLockConnection($config['lock_connection'] ?? $connection);
+
+                return $this->repository($store);
             });
         });
     }
