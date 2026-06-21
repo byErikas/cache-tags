@@ -6,10 +6,9 @@ on:
       ref:
         description: "The branch, tag or SHA to checkout"     
         required: true
-        default: "main"
+        default: "v2.x.x"
   pull_request:
     branches:
-      - main
       - v*.*.*
 
 jobs:
