@@ -6,10 +6,8 @@ on:
       ref:
         description: "The branch, tag or SHA to checkout"     
         required: true
-        default: "main"
   pull_request:
     branches:
-      - main
       - v*.*.*
 
 jobs:
@@ -22,11 +20,11 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest]
-        php: [8.4]
+        php: [8.4, 8.5]
         dependency-version: [prefer-lowest, prefer-stable]
     services:
       redis:
-        image: bitnamilegacy/valkey:8.0.2
+        image: valkey/valkey:latest
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
