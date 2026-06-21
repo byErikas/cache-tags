@@ -6,6 +6,7 @@ on:
       ref:
         description: "The branch, tag or SHA to checkout"     
         required: true
+        default: "v1.x.x"
   pull_request:
     branches:
       - v*.*.*
@@ -20,7 +21,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest]
-        php: [8.4, 8.5]
+        php: [8.4]
         dependency-version: [prefer-lowest, prefer-stable]
     services:
       redis:
