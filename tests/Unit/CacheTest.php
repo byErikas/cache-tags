@@ -419,3 +419,25 @@ it("#31 can check if an item is missing from the cache (different store)", funct
     expect($cache->missing($key))->toBeFalse();
     expect($cache->missing($key . "_missing"))->toBeTrue();
 });
+
+it("releases an atomic lock so it is re-acquirable before its ttl", function () {
+    $cache = $this->cache();
+    $key = (string) $this->key();
+
+    expect($cache->lock($key, 30)->get(fn () => "first"))->toBe("first");
+    expect($cache->lock($key, 30)->get(fn () => "second"))->toBe("second");
+});
+
+it("runs atomic locks on the configured lock_connection", function () {
+    config()->set("database.redis.locks", config("database.redis.default"));
+    config()->set("cache.stores.split_lock", [
+        "driver" => "redis-tags",
+        "connection" => "default",
+        "lock_connection" => "locks",
+    ]);
+
+    $store = $this->cache("split_lock")->getStore();
+
+    expect($store->lockConnection()->getName())->toBe("locks")
+        ->and($store->lockConnection()->getName())->not->toBe($store->connection()->getName());
+});

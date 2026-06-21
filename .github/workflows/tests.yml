@@ -6,10 +6,9 @@ on:
       ref:
         description: "The branch, tag or SHA to checkout"     
         required: true
-        default: "main"
+        default: "v1.x.x"
   pull_request:
     branches:
-      - main
       - v*.*.*
 
 jobs:
@@ -26,7 +25,7 @@ jobs:
         dependency-version: [prefer-lowest, prefer-stable]
     services:
       redis:
-        image: bitnamilegacy/valkey:8.0.2
+        image: valkey/valkey:latest
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
