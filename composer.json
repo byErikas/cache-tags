@@ -8,10 +8,9 @@
         "redis",
         "tags"
     ],
-    "version": "3.0.1",
     "license": "MIT",
     "require": {
-        "laravel/framework": "^13.0"
+        "laravel/framework": "^13.40"
     },
     "require-dev": {
         "orchestra/testbench": "^11.0",
