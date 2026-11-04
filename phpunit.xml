@@ -14,12 +14,4 @@
             <directory suffix=".php">./src</directory>
         </include>
     </source>
-
-    <php>
-        <env name="CACHE_STORE" value="redis" />
-        <env name="REDIS_CLIENT" value="phpredis" />
-        <env name="REDIS_HOST" value="valkey" force="false" />
-        <env name="REDIS_PASSWORD" value="" />
-        <env name="REDIS_PORT" value="6379" />
-    </php>
 </phpunit>
